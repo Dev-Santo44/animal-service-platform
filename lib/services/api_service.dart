@@ -459,19 +459,41 @@ class ApiService {
     return false;
   }
 
-  static Future<List<VaccineTypeModel>> getVaccines({String? species}) async {
+  static Future<List<VaccineType>> getVaccines({String? species, String? coreStatus}) async {
     try {
       String url = "$baseUrl/lookup/vaccines";
-      if (species != null && species != 'All') url += "?species=$species";
+      List<String> params = [];
+      if (species != null && species.isNotEmpty && species != 'All') params.add("species=$species");
+      if (coreStatus != null && coreStatus.isNotEmpty) params.add("coreStatus=$coreStatus");
+      
+      if (params.isNotEmpty) {
+        url += "?" + params.join("&");
+      }
+      
       final response = await http.get(Uri.parse(url));
       if (response.statusCode == 200) {
         return (jsonDecode(response.body) as List)
-            .map((e) => VaccineTypeModel.fromJson(e))
+            .map((e) => VaccineType.fromJson(e))
             .toList();
       }
     } catch (e) { debugPrint("Lookup error: $e"); }
     return [];
   }
+
+  static Future<List<VaccineGlossaryTerm>> getGlossary({String? search}) async {
+    try {
+      String url = "$baseUrl/lookup/glossary";
+      if (search != null && search.isNotEmpty) url += "?search=$search";
+      final response = await http.get(Uri.parse(url));
+      if (response.statusCode == 200) {
+        return (jsonDecode(response.body) as List)
+            .map((e) => VaccineGlossaryTerm.fromJson(e))
+            .toList();
+      }
+    } catch (e) { debugPrint("Glossary error: $e"); }
+    return [];
+  }
+
 
   static Future<List<String>> getServiceTypes() async {
     try {

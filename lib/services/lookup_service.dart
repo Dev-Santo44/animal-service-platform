@@ -22,14 +22,15 @@ class LookupService {
     ]);
 
     species = (results[0] as List).map((e) => e.toString()).toList();
-    // results[1] is List<VaccineTypeModel>
+    // results[1] is List<VaccineType>
     final vaccineModels = results[1] as List;
     vaccines = vaccineModels.map((e) {
       if (e is String) return e;
-      if (e is VaccineTypeModel) return e.name;
+      if (e is VaccineType) return e.name;
       if (e is Map && e.containsKey('name')) return e['name'].toString();
       return e.toString();
     }).toList();
+
     services = (results[2] as List).map((e) => e.toString()).toList();
     districts = (results[3] as List).map((e) => e.toString()).toList();
     isLoaded = true;
