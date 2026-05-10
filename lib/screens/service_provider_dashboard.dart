@@ -14,6 +14,8 @@ import 'package:url_launcher/url_launcher.dart';
 import 'medical_history_screen.dart';
 import 'earnings_screen.dart';
 import 'forum_screen.dart';
+import 'add_vaccination_screen.dart';
+
 
 class ServiceProviderDashboard extends StatefulWidget {
   const ServiceProviderDashboard({super.key});
@@ -267,8 +269,15 @@ class _ProviderHomeTabState extends State<ProviderHomeTab> {
                           color: Colors.green,
                           onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const EarningsScreen())),
                         ),
+                        DashboardTile(
+                          title: "Vaccination Portal",
+                          icon: Icons.shield,
+                          color: Colors.blueAccent,
+                          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AddVaccinationScreen())),
+                        ),
                       ],
                     ),
+
                     const SizedBox(height: 32),
                   ],
                 ),

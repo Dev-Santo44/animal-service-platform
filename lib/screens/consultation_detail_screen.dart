@@ -9,6 +9,8 @@ import 'receipt_screen.dart';
 import 'rate_doctor_screen.dart';
 import 'package:intl/intl.dart';
 import '../services/razorpay_web_service.dart';
+import 'add_vaccination_screen.dart';
+
 
 class ConsultationDetailScreen extends StatefulWidget {
   final Map booking;
@@ -398,95 +400,16 @@ class _ConsultationDetailScreenState extends State<ConsultationDetailScreen> {
   }
 
   void _showAddVaccineDialog() {
-    final animalCtrl = TextEditingController();
-    final vaccineCtrl = TextEditingController();
-    final dateCtrl = TextEditingController();
-    final nextDueCtrl = TextEditingController();
-    String selectedStatus = "COMPLETED";
-
-    showDialog(
-      context: context,
-      builder: (ctx) => StatefulBuilder(
-        builder: (context, setDialogState) => AlertDialog(
-          title: Text(AppLocalizations.of(context)!.newVaccination),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                DropdownButtonFormField<String>(
-                  value: selectedStatus,
-                  items: [
-                    DropdownMenuItem(value: "COMPLETED", child: Text(AppLocalizations.of(context)!.administeredToday)),
-                    DropdownMenuItem(value: "UPCOMING", child: Text(AppLocalizations.of(context)!.setFutureReminder)),
-                  ],
-                  onChanged: (v) => setDialogState(() => selectedStatus = v!),
-                  decoration: InputDecoration(labelText: AppLocalizations.of(context)!.type),
-                ),
-                const SizedBox(height: 12),
-                TextField(controller: animalCtrl, decoration: InputDecoration(labelText: AppLocalizations.of(context)!.animalName)),
-                const SizedBox(height: 12),
-                TextField(controller: vaccineCtrl, decoration: InputDecoration(labelText: AppLocalizations.of(context)!.vaccineName)),
-                const SizedBox(height: 12),
-                if (selectedStatus == "COMPLETED")
-                  ListTile(
-                    title: Text("${AppLocalizations.of(context)!.dateGiven} ${dateCtrl.text.isEmpty ? AppLocalizations.of(context)!.today : dateCtrl.text}"),
-                    trailing: const Icon(Icons.calendar_today),
-                    onTap: () async {
-                      final picked = await showDatePicker(
-                        context: context,
-                        initialDate: DateTime.now(),
-                        firstDate: DateTime(2000),
-                        lastDate: DateTime.now(),
-                      );
-                      if (picked != null) {
-                        setDialogState(() => dateCtrl.text = picked.toString().split(' ')[0]);
-                      }
-                    },
-                  ),
-                const SizedBox(height: 12),
-                ListTile(
-                  title: Text(selectedStatus == "UPCOMING" ? "${AppLocalizations.of(context)!.reminderDate} ${nextDueCtrl.text}" : "${AppLocalizations.of(context)!.nextDueDate} ${nextDueCtrl.text.isEmpty ? AppLocalizations.of(context)!.notSet : nextDueCtrl.text}"),
-                  trailing: const Icon(Icons.alarm),
-                  onTap: () async {
-                    final picked = await showDatePicker(
-                      context: context,
-                      initialDate: DateTime.now().add(const Duration(days: 180)),
-                      firstDate: DateTime.now(),
-                      lastDate: DateTime.now().add(const Duration(days: 365 * 5)),
-                    );
-                    if (picked != null) {
-                      setDialogState(() => nextDueCtrl.text = picked.toString().split(' ')[0]);
-                    }
-                  },
-                ),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(onPressed: () => Navigator.pop(context), child: Text(AppLocalizations.of(context)!.cancel)),
-            ElevatedButton(
-              onPressed: () async {
-                if (animalCtrl.text.isNotEmpty && vaccineCtrl.text.isNotEmpty) {
-                  await ApiService.addVaccinationRecord(
-                    ownerEmail: widget.booking['ownerEmail'],
-                    animal: animalCtrl.text,
-                    vaccine: vaccineCtrl.text,
-                    status: selectedStatus,
-                    dateGiven: selectedStatus == "COMPLETED" ? (dateCtrl.text.isEmpty ? DateTime.now().toString().split(' ')[0] : dateCtrl.text) : null,
-                    nextDueDate: nextDueCtrl.text.isEmpty ? null : nextDueCtrl.text,
-                    providerEmail: _user['email'],
-                  );
-                  Navigator.pop(context);
-                  _loadVaccinations();
-                }
-              },
-              child: Text(AppLocalizations.of(context)!.save),
-            ),
-          ],
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => AddVaccinationScreen(
+          animalName: widget.booking['animalName'],
         ),
       ),
-    );
+    ).then((_) => _loadVaccinations());
   }
+
 
   // ── CHAT ──────────────────────────────
   Widget _chatTab() {
