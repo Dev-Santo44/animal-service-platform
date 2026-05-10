@@ -141,7 +141,7 @@ class _AddAnimalScreenState extends State<AddAnimalScreen> {
     }
 
     final success = await ApiService.addAnimal({
-      "farmerEmail": user!['email'],
+      "ownerEmail": user!['email'],
       "name": nameController.text,
       "species": species,
       "breed": breedController.text,

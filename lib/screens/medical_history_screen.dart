@@ -6,8 +6,8 @@ import 'consultation_detail_screen.dart';
 import '../services/session.dart';
 
 class MedicalHistoryScreen extends StatefulWidget {
-  final String? farmerEmail;
-  const MedicalHistoryScreen({super.key, this.farmerEmail});
+  final String? ownerEmail;
+  const MedicalHistoryScreen({super.key, this.ownerEmail});
 
   @override
   State<MedicalHistoryScreen> createState() => _MedicalHistoryScreenState();
@@ -25,11 +25,11 @@ class _MedicalHistoryScreenState extends State<MedicalHistoryScreen> {
 
   Future<void> _loadHistory() async {
     final user = Session.currentUser;
-    final email = widget.farmerEmail ?? user?['email'];
+    final email = widget.ownerEmail ?? user?['email'];
     if (email == null) return;
 
     List data;
-    if (widget.farmerEmail != null || user?['role'] == "Farmer") {
+    if (widget.ownerEmail != null || user?['role'] == "Farmer") {
       data = await ApiService.getFarmerBookings(email);
     } else {
       data = await ApiService.getProviderBookings(email);
@@ -50,7 +50,7 @@ class _MedicalHistoryScreenState extends State<MedicalHistoryScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
           const Text("Medical History"),
-            Text(widget.farmerEmail ?? Session.currentUser?['email'] ?? "", style: const TextStyle(fontSize: 12, color: Colors.white70)),
+            Text(widget.ownerEmail ?? Session.currentUser?['email'] ?? "", style: const TextStyle(fontSize: 12, color: Colors.white70)),
           ],
         ),
       ),

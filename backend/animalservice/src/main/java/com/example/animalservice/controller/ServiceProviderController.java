@@ -20,14 +20,44 @@ public class ServiceProviderController {
     @Autowired
     private BookingService bookingService;
 
+    @Autowired
+    private com.example.animalservice.security.JwtUtil jwtUtil;
+
+    @Autowired
+    private com.example.animalservice.service.StorageService storageService;
+
     @PostMapping("/register")
     public ServiceProvider register(@RequestBody ServiceProvider provider) {
         return service.register(provider);
     }
 
+    @PostMapping("/upload-license")
+    public Map<String, String> uploadLicense(
+            @RequestParam("file") org.springframework.web.multipart.MultipartFile file,
+            @RequestParam("email") String email) {
+        try {
+            String url = storageService.uploadLicense(file, email);
+            ServiceProvider provider = service.findByEmail(email);
+            if (provider != null) {
+                provider.setLicenseFileUrl(url);
+                service.save(provider);
+                return Map.of("status", "SUCCESS", "url", url);
+            }
+            return Map.of("status", "ERROR", "message", "Doctor not found");
+        } catch (Exception e) {
+            return Map.of("status", "ERROR", "message", e.getMessage());
+        }
+    }
+
     @PostMapping("/login")
     public ServiceProvider login(@RequestBody ServiceProvider provider) {
-        return service.login(provider.getEmail(), provider.getPassword());
+        ServiceProvider user = service.login(provider.getEmail(), provider.getPassword());
+        if (user != null) {
+            String token = jwtUtil.generateToken(user.getEmail(), user.getRole());
+            user.setToken(token);
+            return user;
+        }
+        return null;
     }
 
     @GetMapping("/providers")

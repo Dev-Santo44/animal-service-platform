@@ -174,7 +174,7 @@ class _ProviderScheduleTabState extends State<ProviderScheduleTab> {
               children: [
                 Row(
                   children: [
-                    Text(b['serviceType'], style: const TextStyle(fontWeight: FontWeight.bold)),
+                    Text(b['serviceType'] ?? "Consultation", style: const TextStyle(fontWeight: FontWeight.bold)),
                     if (isPending) ...[
                       const SizedBox(width: 8),
                       Container(
@@ -185,7 +185,7 @@ class _ProviderScheduleTabState extends State<ProviderScheduleTab> {
                     ],
                   ],
                 ),
-                Text(b['farmerEmail'], style: TextStyle(color: Colors.grey.shade500, fontSize: 12)),
+                Text(b['ownerEmail'] ?? "Owner", style: TextStyle(color: Colors.grey.shade500, fontSize: 12)),
               ],
             ),
           ),

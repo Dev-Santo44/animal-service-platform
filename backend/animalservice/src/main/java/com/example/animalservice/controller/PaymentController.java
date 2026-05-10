@@ -21,9 +21,9 @@ public class PaymentController {
     public Map<String, Object> createOrder(@RequestBody Map<String, Object> payload) {
         int bookingId = (int) payload.get("bookingId");
         double amount = Double.parseDouble(payload.get("amount").toString());
-        String farmerEmail = (String) payload.get("farmerEmail");
+        String ownerEmail = (String) payload.get("ownerEmail");
         String providerEmail = (String) payload.get("providerEmail");
-        return paymentService.createRazorpayOrder(bookingId, amount, farmerEmail, providerEmail);
+        return paymentService.createRazorpayOrder(bookingId, amount, ownerEmail, providerEmail);
     }
 
     @PostMapping("/verify")
@@ -38,9 +38,9 @@ public class PaymentController {
     public Payment recordCash(@RequestBody Map<String, Object> payload) {
         int bookingId = (int) payload.get("bookingId");
         double amount = Double.parseDouble(payload.get("amount").toString());
-        String farmerEmail = (String) payload.get("farmerEmail");
+        String ownerEmail = (String) payload.get("ownerEmail");
         String providerEmail = (String) payload.get("providerEmail");
-        return paymentService.recordCashPayment(bookingId, amount, farmerEmail, providerEmail);
+        return paymentService.recordCashPayment(bookingId, amount, ownerEmail, providerEmail);
     }
 
     @GetMapping("/earnings/{email}")
@@ -50,7 +50,7 @@ public class PaymentController {
 
     @GetMapping("/history/{email}")
     public List<Payment> getHistory(@PathVariable String email) {
-        return paymentService.getFarmerPaymentHistory(email);
+        return paymentService.getOwnerPaymentHistory(email);
     }
 
     @PostMapping("/withdraw")

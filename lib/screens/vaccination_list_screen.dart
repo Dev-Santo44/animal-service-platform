@@ -16,11 +16,35 @@ class VaccinationListScreen extends StatefulWidget {
 class _VaccinationListScreenState extends State<VaccinationListScreen> {
   List records = [];
   bool isLoading = true;
+  String _filterStatus = 'All';  // F6: Filter
+  final _searchCtrl = TextEditingController();
+  String _searchQuery = '';
+
+  final List<String> _filterOptions = ['All', 'Upcoming', 'Overdue', 'Completed'];
+
+  List get _filteredRecords {
+    return records.where((r) {
+      final matchesSearch = _searchQuery.isEmpty ||
+          (r['vaccineName'] ?? '').toString().toLowerCase().contains(_searchQuery.toLowerCase()) ||
+          (r['animalName'] ?? '').toString().toLowerCase().contains(_searchQuery.toLowerCase());
+      if (!matchesSearch) return false;
+      if (_filterStatus == 'All') return true;
+      final status = _getBadgeStatus(r['nextDueDate']);
+      return status == _filterStatus.toUpperCase();
+    }).toList();
+  }
 
   @override
   void initState() {
     super.initState();
     loadRecords();
+    _searchCtrl.addListener(() => setState(() => _searchQuery = _searchCtrl.text));
+  }
+
+  @override
+  void dispose() {
+    _searchCtrl.dispose();
+    super.dispose();
   }
 
   void loadRecords() async {
@@ -63,43 +87,132 @@ class _VaccinationListScreenState extends State<VaccinationListScreen> {
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
+    final user = Session.currentUser;
+    final isDoctor = user?['role'] == 'Doctor' || user?['role'] == 'Service Provider';
+
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
       appBar: AppBar(
         title: Text(l.vaccinationTracking),
         actions: [
-          IconButton(onPressed: loadRecords, icon: const Icon(Icons.refresh))
+          if (!isDoctor)
+            IconButton(
+              icon: const Icon(Icons.add),
+              onPressed: () async {
+                await Navigator.push(context,
+                    MaterialPageRoute(builder: (_) => const AddVaccinationScreen()));
+                loadRecords();
+              },
+            ),
         ],
       ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
           : Column(
               children: [
-                _buildHeader(l),
+                // F6: Search bar
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+                  child: TextField(
+                    controller: _searchCtrl,
+                    decoration: InputDecoration(
+                      hintText: "Search by animal or vaccine...",
+                      prefixIcon: const Icon(Icons.search, size: 20),
+                      filled: true,
+                      fillColor: Colors.white,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                      suffixIcon: _searchQuery.isNotEmpty
+                          ? IconButton(
+                              icon: const Icon(Icons.clear, size: 18),
+                              onPressed: () => _searchCtrl.clear(),
+                            )
+                          : null,
+                    ),
+                  ),
+                ),
+                // F6: Filter chips
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: _filterOptions.map((option) {
+                        final isSelected = _filterStatus == option;
+                        Color chipColor;
+                        switch (option) {
+                          case 'Overdue': chipColor = Colors.red; break;
+                          case 'Upcoming': chipColor = Colors.orange; break;
+                          case 'Completed': chipColor = Colors.green; break;
+                          default: chipColor = AppTheme.primaryColor;
+                        }
+                        return Padding(
+                          padding: const EdgeInsets.only(right: 8),
+                          child: FilterChip(
+                            label: Text(option),
+                            selected: isSelected,
+                            onSelected: (_) => setState(() => _filterStatus = option),
+                            selectedColor: chipColor.withOpacity(0.15),
+                            checkmarkColor: chipColor,
+                            labelStyle: TextStyle(
+                              color: isSelected ? chipColor : Colors.grey.shade700,
+                              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ),
+                ),
+                // Record count
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      "${_filteredRecords.length} records",
+                      style: TextStyle(color: Colors.grey.shade500, fontSize: 12),
+                    ),
+                  ),
+                ),
                 Expanded(
-                  child: records.isEmpty
-                      ? _buildEmptyState(l)
+                  child: _filteredRecords.isEmpty
+                      ? Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(Icons.vaccines_outlined,
+                                  size: 60, color: Colors.grey),
+                              const SizedBox(height: 16),
+                              Text(l.noRecordsYet,
+                                  style: const TextStyle(color: Colors.grey)),
+                            ],
+                          ),
+                        )
                       : ListView.builder(
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                          itemCount: records.length,
-                          itemBuilder: (context, index) =>
-                              _buildVaccineCard(records[index], l),
+                          padding: const EdgeInsets.all(16),
+                          itemCount: _filteredRecords.length,
+                          itemBuilder: (context, index) {
+                            return _buildVaccineCard(_filteredRecords[index], l);
+                          },
                         ),
                 ),
               ],
             ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () async {
-          await Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const AddVaccinationScreen()),
-          );
-          loadRecords();
-        },
-        backgroundColor: AppTheme.primaryColor,
-        icon: const Icon(Icons.add, color: Colors.white),
-        label: Text(l.addRecord, style: const TextStyle(color: Colors.white)),
-      ),
+      floatingActionButton: !isDoctor
+          ? FloatingActionButton(
+              onPressed: () async {
+                await Navigator.push(context,
+                    MaterialPageRoute(
+                        builder: (_) => const AddVaccinationScreen()));
+                loadRecords();
+              },
+              backgroundColor: AppTheme.primaryColor,
+              child: const Icon(Icons.add, color: Colors.white),
+            )
+          : null,
     );
   }
 

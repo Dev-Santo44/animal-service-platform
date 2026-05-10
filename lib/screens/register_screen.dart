@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:animal1/l10n/app_localizations.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:path/path.dart' as path;
 import '../services/api_service.dart';
 import '../theme/app_theme.dart';
 import 'otp_verification_screen.dart';
@@ -18,12 +20,31 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
   final phoneController = TextEditingController();
-  String role = "Farmer";
+  final licenseController = TextEditingController(); 
+  String role = "Pet Owner"; 
   bool isLoading = false;
+  String? selectedFilePath;
+  String? selectedFileName;
+
+  Future<void> _pickLicense() async {
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['pdf', 'jpg', 'jpeg', 'png'],
+    );
+
+    if (result != null && result.files.single.path != null) {
+      setState(() {
+        selectedFilePath = result.files.single.path;
+        selectedFileName = path.basename(selectedFilePath!);
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
+    final bool isDoctor = role == "Doctor";
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -97,15 +118,67 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       Icons.assignment_ind_outlined,
                       size: 20),
                 ),
-                items: [
+                items: const [
                   DropdownMenuItem(
-                      value: "Farmer", child: Text(l.farmer)),
+                      value: "Pet Owner",
+                      child: Text("Pet Owner")),
                   DropdownMenuItem(
-                      value: "Service Provider",
-                      child: Text(l.serviceProvider)),
+                      value: "Doctor",
+                      child: Text("Doctor / Vet")),
                 ],
                 onChanged: (v) => setState(() => role = v!),
               ),
+              if (isDoctor) ...[
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: licenseController,
+                  decoration: const InputDecoration(
+                    hintText: "Veterinary License Number",
+                    prefixIcon: Icon(Icons.badge_outlined, size: 20),
+                  ),
+                  validator: (v) => isDoctor && (v == null || v.isEmpty)
+                      ? "License number required for doctors"
+                      : null,
+                ),
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.orange.shade50,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.orange.shade200),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.info_outline, color: Colors.orange.shade700, size: 20),
+                      const SizedBox(width: 12),
+                      const Expanded(
+                        child: Text(
+                          "⏳ Your account will be pending admin verification. You can log in but cannot accept bookings until approved.",
+                          style: TextStyle(fontSize: 12),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+                OutlinedButton.icon(
+                  onPressed: _pickLicense,
+                  icon: Icon(selectedFilePath == null ? Icons.upload_file : Icons.check_circle, 
+                        color: selectedFilePath == null ? null : Colors.green),
+                  label: Text(selectedFileName ?? "Upload License Copy (PDF/JPG)"),
+                  style: OutlinedButton.styleFrom(
+                    minimumSize: const Size(double.infinity, 48),
+                    side: BorderSide(color: selectedFilePath == null ? Colors.grey.shade300 : Colors.green),
+                  ),
+                ),
+                if (isDoctor && selectedFilePath == null)
+                  const Padding(
+                    padding: EdgeInsets.only(top: 8, left: 4),
+                    child: Text("Please upload a license copy", style: TextStyle(color: Colors.red, fontSize: 12)),
+                  ),
+              ],
+
               const SizedBox(height: 32),
               ElevatedButton(
                 onPressed: isLoading ? null : _handleRegister,
@@ -127,16 +200,23 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Future<void> _handleRegister() async {
     final l = AppLocalizations.of(context)!;
     if (!_formKey.currentState!.validate()) return;
+    if (role == "Doctor" && selectedFilePath == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please upload your license copy")),
+      );
+      return;
+    }
+
     setState(() => isLoading = true);
 
-    // 🛡️ STEP 1: Send OTP
+    // STEP 1: Send OTP
     final otpSent = await ApiService.sendOtp(emailController.text, "REGISTRATION");
-    
+
     if (!mounted) return;
     setState(() => isLoading = false);
 
     if (otpSent) {
-      // 🛡️ STEP 2: Navigate to OTP Screen
+      // STEP 2: Navigate to OTP Screen
       Navigator.push(
         context,
         MaterialPageRoute(
@@ -144,19 +224,32 @@ class _RegisterScreenState extends State<RegisterScreen> {
             email: emailController.text,
             type: "REGISTRATION",
             onVerified: () async {
-              // 🛡️ STEP 3: Finalize Registration
+              setState(() => isLoading = true);
+              // STEP 3: Finalize Registration
               final result = await ApiService.register(
                 nameController.text,
                 emailController.text,
                 passwordController.text,
                 phoneController.text,
                 role,
+                licenseNumber: role == "Doctor" ? licenseController.text : null,
               );
+              
+              if (result != null && role == "Doctor" && selectedFilePath != null) {
+                // STEP 4: Upload License
+                await ApiService.uploadLicense(emailController.text, selectedFilePath!);
+              }
+
               if (mounted) {
+                setState(() => isLoading = false);
                 if (result != null) {
                   await Session.setMfaVerified(emailController.text);
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(l.accountCreated)),
+                    SnackBar(content: Text(
+                      role == "Doctor"
+                          ? "Account created! Pending admin verification."
+                          : l.accountCreated
+                    )),
                   );
                   Navigator.pop(context); // Go back from OTP
                   Navigator.pop(context); // Go back from Register
@@ -177,3 +270,4 @@ class _RegisterScreenState extends State<RegisterScreen> {
     }
   }
 }
+

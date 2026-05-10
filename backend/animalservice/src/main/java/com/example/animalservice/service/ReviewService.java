@@ -26,8 +26,8 @@ public class ReviewService {
         }
         
         // Resolve userId (farmer) from email if missing
-        if (review.getUserId() == 0 && review.getFarmerEmail() != null) {
-            ServiceProvider u = providerRepository.findByEmail(review.getFarmerEmail());
+        if (review.getUserId() == 0 && review.getOwnerEmail() != null) {
+            ServiceProvider u = providerRepository.findByEmail(review.getOwnerEmail());
             if (u != null) review.setUserId(u.getId());
         }
 

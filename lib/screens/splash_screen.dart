@@ -1,7 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:animal1/l10n/app_localizations.dart';
-import 'login_screen.dart';
 import '../theme/app_theme.dart';
+import '../services/session.dart';
+import '../services/api_service.dart';
+import '../utils/transitions.dart';
+import 'home_page.dart';
+import 'farmer_screen.dart';
+import 'service_provider_dashboard.dart';
+import 'admin_panel.dart';
+import 'onboarding_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -26,22 +34,48 @@ class _SplashScreenState extends State<SplashScreen>
         Tween<double>(begin: 0.0, end: 1.0).animate(_controller);
     _controller.forward();
 
-    Future.delayed(const Duration(seconds: 3), () {
-      if (mounted) {
-        Navigator.pushReplacement(
-          context,
-          PageRouteBuilder(
-            pageBuilder: (context, animation, secondaryAnimation) =>
-                const LoginScreen(),
-            transitionsBuilder:
-                (context, animation, secondaryAnimation, child) {
-              return FadeTransition(opacity: animation, child: child);
-            },
-            transitionDuration: const Duration(milliseconds: 800),
-          ),
-        );
+    _checkSession();
+  }
+
+  Future<void> _checkSession() async {
+    // F4: Animation duration + logic delay
+    await Future.delayed(const Duration(seconds: 3));
+    
+    final prefs = await SharedPreferences.getInstance();
+    final email = prefs.getString('user_email');
+    final role = prefs.getString('user_role');
+    final onboardingShown = prefs.getBool('onboarding_shown') ?? false;
+
+    if (!mounted) return;
+
+    if (email == null || role == null) {
+      Navigator.pushReplacement(context, createSlideRoute(const HomePage()));
+      return;
+    }
+
+    try {
+      final user = await ApiService.getProviderProfile(email);
+      if (user != null && mounted) {
+        await Session.saveUser(user);
+        Widget destination;
+        if (role == 'Admin') {
+          destination = const AdminPanel();
+        } else if (role == 'Doctor' || role == 'Service Provider') {
+          destination = const ServiceProviderDashboard();
+        } else {
+          destination = const FarmerScreen();
+        }
+        Navigator.pushReplacement(context, createSlideRoute(destination));
+        return;
       }
-    });
+    } catch (e) {
+      debugPrint("Session check error: $e");
+    }
+
+    // Fallback to HomePage
+    if (mounted) {
+      Navigator.pushReplacement(context, createSlideRoute(const HomePage()));
+    }
   }
 
   @override

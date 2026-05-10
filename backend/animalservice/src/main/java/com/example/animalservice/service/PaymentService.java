@@ -45,7 +45,7 @@ public class PaymentService {
 
     // ─── 1. Create Razorpay Order (Online payment) ───────────────────────────
     public Map<String, Object> createRazorpayOrder(int bookingId, double amount,
-                                                    String farmerEmail, String providerEmail) {
+                                                    String ownerEmail, String providerEmail) {
         Map<String, Object> result = new HashMap<>();
         try {
             RazorpayClient client = new RazorpayClient(keyId, keySecret);
@@ -57,7 +57,7 @@ public class PaymentService {
             options.put("receipt", "booking_" + bookingId);
             options.put("notes", new JSONObject()
                     .put("bookingId", bookingId)
-                    .put("farmerEmail", farmerEmail)
+                    .put("ownerEmail", ownerEmail)
                     .put("providerEmail", providerEmail));
 
             Order order = client.orders.create(options);
@@ -66,7 +66,7 @@ public class PaymentService {
             // Save pending payment record
             Payment payment = new Payment();
             payment.setBookingId(bookingId);
-            payment.setFarmerEmail(farmerEmail);
+            payment.setOwnerEmail(ownerEmail);
             payment.setProviderEmail(providerEmail);
             payment.setAmount(amount);
             payment.setMethod("ONLINE");
@@ -121,10 +121,10 @@ public class PaymentService {
 
     // ─── 3. Record Cash Payment ───────────────────────────────────────────────
     public Payment recordCashPayment(int bookingId, double amount,
-                                      String farmerEmail, String providerEmail) {
+                                      String ownerEmail, String providerEmail) {
         Payment payment = new Payment();
         payment.setBookingId(bookingId);
-        payment.setFarmerEmail(farmerEmail);
+        payment.setOwnerEmail(ownerEmail);
         payment.setProviderEmail(providerEmail);
         payment.setAmount(amount);
         payment.setMethod("CASH");
@@ -155,8 +155,8 @@ public class PaymentService {
     }
 
     // ─── 5. Get Farmer Payment History ───────────────────────────────────────
-    public List<Payment> getFarmerPaymentHistory(String farmerEmail) {
-        return paymentRepository.findByFarmerEmailOrderByCreatedAtDesc(farmerEmail);
+    public List<Payment> getOwnerPaymentHistory(String ownerEmail) {
+        return paymentRepository.findByOwnerEmailOrderByCreatedAtDesc(ownerEmail);
     }
 
     // ─── 6. Initiate Doctor Withdrawal via Razorpay Payout ───────────────────

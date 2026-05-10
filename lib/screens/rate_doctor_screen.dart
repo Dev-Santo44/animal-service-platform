@@ -23,7 +23,7 @@ class _RateDoctorScreenState extends State<RateDoctorScreen> {
     final user = Session.currentUser;
     
     final review = {
-      "farmerEmail": user!['email'],
+      "ownerEmail": user!['email'],
       "providerEmail": widget.booking['providerEmail'],
       "reviewerName": user['name'],
       "bookingId": widget.booking['id'],

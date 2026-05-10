@@ -14,7 +14,7 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
 
     List<Payment> findByBookingId(int bookingId);
 
-    List<Payment> findByFarmerEmailOrderByCreatedAtDesc(String farmerEmail);
+    List<Payment> findByOwnerEmailOrderByCreatedAtDesc(String ownerEmail);
 
     List<Payment> findByProviderEmailAndStatusOrderByCreatedAtDesc(String providerEmail, String status);
 

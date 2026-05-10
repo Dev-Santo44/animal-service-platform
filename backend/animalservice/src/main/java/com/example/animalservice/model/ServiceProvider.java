@@ -33,6 +33,17 @@ public class ServiceProvider {
     private String description;
     private String workingHours;
 
+    // Feature 1 — Doctor License Verification (v2.0)
+    private String licenseNumber;
+    private String licenseFileUrl;
+    private String verificationStatus = "PENDING"; // PENDING, APPROVED, REJECTED
+    @Column(columnDefinition = "TEXT")
+    private String rejectionReason;
+    
+    @Transient
+    private String token;
+
+
     // Getters & Setters
     public int getId() { return id; }
     public void setId(int id) { this.id = id; }
@@ -93,4 +104,19 @@ public class ServiceProvider {
 
     public String getWorkingHours() { return workingHours; }
     public void setWorkingHours(String workingHours) { this.workingHours = workingHours; }
-}
+
+    public String getLicenseNumber() { return licenseNumber; }
+    public void setLicenseNumber(String licenseNumber) { this.licenseNumber = licenseNumber; }
+
+    public String getLicenseFileUrl() { return licenseFileUrl; }
+    public void setLicenseFileUrl(String licenseFileUrl) { this.licenseFileUrl = licenseFileUrl; }
+
+    public String getVerificationStatus() { return verificationStatus; }
+    public void setVerificationStatus(String verificationStatus) { this.verificationStatus = verificationStatus; }
+
+    public String getRejectionReason() { return rejectionReason; }
+    public void setRejectionReason(String rejectionReason) { this.rejectionReason = rejectionReason; }
+
+    public String getToken() { return token; }
+    public void setToken(String token) { this.token = token; }
+}

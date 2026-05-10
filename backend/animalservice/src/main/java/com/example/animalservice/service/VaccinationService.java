@@ -21,8 +21,8 @@ public class VaccinationService {
         return repository.save(record);
     }
 
-    public List<VaccinationRecord> getByFarmer(String email) {
-        return repository.findByFarmerEmail(email);
+    public List<VaccinationRecord> getByOwner(String email) {
+        return repository.findByOwnerEmail(email);
     }
 
     public List<VaccinationRecord> getByAnimal(int animalId) {

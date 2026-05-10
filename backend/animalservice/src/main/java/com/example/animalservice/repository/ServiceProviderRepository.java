@@ -16,4 +16,11 @@ public interface ServiceProviderRepository extends JpaRepository<ServiceProvider
     List<ServiceProvider> findByDoctorTypeAndDistrict(String doctorType, String district);
 
     List<ServiceProvider> findByRole(String role);
-}
+
+    // Feature 1 & 8 — Admin verification
+    List<ServiceProvider> findByRoleAndVerificationStatus(String role, String verificationStatus);
+
+    long countByRole(String role);
+
+    long countByRoleAndVerificationStatus(String role, String verificationStatus);
+}

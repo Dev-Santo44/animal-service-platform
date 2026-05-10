@@ -298,8 +298,8 @@ class _EarningsScreenState extends State<EarningsScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text("Payment from Farmer", style: const TextStyle(fontWeight: FontWeight.bold)),
-                Text(tx['farmerEmail'] ?? "", style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                Text("Payment from Owner", style: const TextStyle(fontWeight: FontWeight.bold)),
+                Text(tx['ownerEmail'] ?? "No Email", style: const TextStyle(color: Colors.grey, fontSize: 12)),
                 Text("Method: ${tx['method']}", style: const TextStyle(color: Colors.blue, fontSize: 10)),
               ],
             ),

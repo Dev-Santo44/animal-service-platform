@@ -3,6 +3,7 @@ import 'package:animal1/l10n/app_localizations.dart';
 import 'register_screen.dart';
 import 'farmer_screen.dart';
 import 'service_provider_dashboard.dart';
+import 'admin_panel.dart';
 import '../services/api_service.dart';
 import '../services/session.dart';
 import '../theme/app_theme.dart';
@@ -21,7 +22,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
   bool isPasswordVisible = false;
-  String role = "Farmer";
+  String role = "Pet Owner";  // F2: was "Farmer"
   bool isLoading = false;
 
   @override
@@ -102,8 +103,8 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     child: Row(
                       children: [
-                        _roleTab(l.farmer, "Farmer"),
-                        _roleTab(l.serviceProvider, "Service Provider"),
+                        _roleTab("Pet Owner", "Pet Owner"),    // F2: was l.farmer / "Farmer"
+                        _roleTab("Doctor / Vet", "Doctor"),    // F2: was l.serviceProvider / "Service Provider"
                       ],
                     ),
                   ),
@@ -211,25 +212,40 @@ class _LoginScreenState extends State<LoginScreen> {
         emailController.text, passwordController.text);
     setState(() => isLoading = false);
     if (user != null) {
-      if (user['role'] == "Farmer") {
+      // F8: Admin routing
+      if (user['role'] == "Admin") {
+        Session.currentUser = user;
+        if (mounted) {
+          Navigator.pushReplacement(context,
+              MaterialPageRoute(builder: (_) => const AdminPanel()));
+        }
+        return;
+      }
+
+      // F2: Updated role check: "Pet Owner" instead of "Farmer"
+      if (user['role'] == "Pet Owner" || user['role'] == "Farmer") {
         Session.currentUser = user;
         NotificationService.getTokenAndSave();
-        Navigator.pushReplacement(context,
-            MaterialPageRoute(builder: (_) => const FarmerScreen()));
+        if (mounted) {
+          Navigator.pushReplacement(context,
+              MaterialPageRoute(builder: (_) => const FarmerScreen()));
+        }
       } else {
-        // 🛡️ Service Provider MFA
+        // Doctor MFA
         setState(() => isLoading = true);
-        
+
         final isMfaVerified = await Session.isMfaVerified(emailController.text);
-        
+
         if (isMfaVerified) {
           if (mounted) setState(() => isLoading = false);
           Session.currentUser = user;
           NotificationService.getTokenAndSave();
-          Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                  builder: (_) => const ServiceProviderDashboard()));
+          if (mounted) {
+            Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                    builder: (_) => const ServiceProviderDashboard()));
+          }
           return;
         }
 
@@ -237,32 +253,40 @@ class _LoginScreenState extends State<LoginScreen> {
         if (mounted) setState(() => isLoading = false);
 
         if (otpSent) {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => OtpVerificationScreen(
-                email: emailController.text,
-                type: "LOGIN",
-                onVerified: () async {
-                  await Session.setMfaVerified(emailController.text);
-                  Session.currentUser = user;
-                  NotificationService.getTokenAndSave();
-                  Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                          builder: (_) => const ServiceProviderDashboard()));
-                },
+          if (mounted) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => OtpVerificationScreen(
+                  email: emailController.text,
+                  type: "LOGIN",
+                  onVerified: () async {
+                    await Session.setMfaVerified(emailController.text);
+                    Session.currentUser = user;
+                    NotificationService.getTokenAndSave();
+                    if (mounted) {
+                      Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                              builder: (_) => const ServiceProviderDashboard()));
+                    }
+                  },
+                ),
               ),
-            ),
-          );
+            );
+          }
         } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text("MFA Verification Failed. Please try again.")));
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text("MFA Verification Failed. Please try again.")));
+          }
         }
       }
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l.invalidCredentials)));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(l.invalidCredentials)));
+      }
     }
   }
 }

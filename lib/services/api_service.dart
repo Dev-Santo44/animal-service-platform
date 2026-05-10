@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter/foundation.dart';
+import '../models/vaccine_type.dart';
+import '../services/session.dart';
 
 class ApiService {
   static String get baseUrl {
@@ -10,6 +12,14 @@ class ApiService {
   }
 
   // 🔐 AUTH
+  static Future<Map<String, String>> _getHeaders() async {
+    final token = await Session.getToken();
+    return {
+      "Content-Type": "application/json",
+      if (token != null) "Authorization": "Bearer $token",
+    };
+  }
+
   static Future<Map<String, dynamic>?> login(String email, String password) async {
     final trimmedEmail = email.trim();
     try {
@@ -18,7 +28,13 @@ class ApiService {
         headers: {"Content-Type": "application/json"},
         body: jsonEncode({"email": trimmedEmail, "password": password}),
       );
-      if (response.statusCode == 200 && response.body != "null") return jsonDecode(response.body);
+      if (response.statusCode == 200) {
+        final body = response.body.trim();
+        if (body.isEmpty || body == "null") return null;
+        final data = jsonDecode(body);
+        await Session.saveUser(data);
+        return data;
+      }
     } catch (e) {
       debugPrint("Login error: $e");
     }
@@ -26,7 +42,7 @@ class ApiService {
   }
 
   static Future<Map<String, dynamic>?> register(
-      String name, String email, String password, String phone, String role) async {
+      String name, String email, String password, String phone, String role, {String? licenseNumber}) async {
     final trimmedEmail = email.trim();
     try {
       final response = await http.post(
@@ -38,6 +54,8 @@ class ApiService {
           "password": password,
           "phone": phone,
           "role": role,
+          "licenseNumber": licenseNumber,
+          "verificationStatus": role == "Doctor" ? "PENDING" : "APPROVED",
         }),
       );
       if (response.statusCode == 200 && response.body != "null") return jsonDecode(response.body);
@@ -45,6 +63,24 @@ class ApiService {
       debugPrint("Register error: $e");
     }
     return null;
+  }
+
+  static Future<bool> uploadLicense(String email, String filePath) async {
+    try {
+      final request = http.MultipartRequest('POST', Uri.parse("$baseUrl/service-provider/upload-license"));
+      request.fields['email'] = email;
+      request.files.add(await http.MultipartFile.fromPath('file', filePath));
+      
+      final token = await Session.getToken();
+      if (token != null) request.headers['Authorization'] = 'Bearer $token';
+
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+      return response.statusCode == 200;
+    } catch (e) {
+      debugPrint("Upload license error: $e");
+      return false;
+    }
   }
 
   // 🛡️ OTP
@@ -137,18 +173,32 @@ class ApiService {
   }
 
   // 📅 BOOKINGS
-  static Future<void> createBooking(String email, String serviceType, {String? providerEmail, String? date, String? time}) async {
+  static Future<void> createBooking(
+    String email,
+    String serviceType, {
+    String? providerEmail,
+    String? date,
+    String? time,
+    String visitType = 'IN_HOSPITAL',
+    String? visitAddress,
+    String? visitCity,
+    String? visitPincode,
+  }) async {
     try {
       await http.post(
         Uri.parse("$baseUrl/bookings/create"),
-        headers: {"Content-Type": "application/json"},
+        headers: await _getHeaders(),
         body: jsonEncode({
-          "farmerEmail": email,
+          "ownerEmail": email,
           "providerEmail": providerEmail,
           "serviceType": serviceType,
           "status": "PENDING",
           "appointmentDate": date ?? DateTime.now().toString().split(' ')[0],
           "appointmentTime": time ?? "09:00 AM",
+          "visitType": visitType,
+          if (visitAddress != null) "visitAddress": visitAddress,
+          if (visitCity != null) "visitCity": visitCity,
+          if (visitPincode != null) "visitPincode": visitPincode,
         }),
       );
     } catch (e) {
@@ -158,7 +208,7 @@ class ApiService {
 
   static Future<List<dynamic>> getFarmerBookings(String email) async {
     try {
-      final response = await http.get(Uri.parse("$baseUrl/bookings/farmer/$email"));
+      final response = await http.get(Uri.parse("$baseUrl/bookings/owner/$email"), headers: await _getHeaders());
       if (response.statusCode == 200) return jsonDecode(response.body);
     } catch (e) {
       debugPrint("Get bookings error: $e");
@@ -168,7 +218,7 @@ class ApiService {
 
   static Future<List<dynamic>> getAllBookings() async {
     try {
-      final response = await http.get(Uri.parse("$baseUrl/bookings/all"));
+      final response = await http.get(Uri.parse("$baseUrl/bookings/all"), headers: await _getHeaders());
       if (response.statusCode == 200) return jsonDecode(response.body);
     } catch (e) {
       debugPrint("Get all bookings error: $e");
@@ -178,7 +228,7 @@ class ApiService {
 
   static Future<List<dynamic>> getProviderBookings(String email) async {
     try {
-      final response = await http.get(Uri.parse("$baseUrl/bookings/provider/$email"));
+      final response = await http.get(Uri.parse("$baseUrl/bookings/provider/$email"), headers: await _getHeaders());
       if (response.statusCode == 200) return jsonDecode(response.body);
     } catch (e) {
       debugPrint("Get provider bookings error: $e");
@@ -190,7 +240,7 @@ class ApiService {
     try {
       String url = "$baseUrl/bookings/update/$id/$status";
       if (providerEmail != null) url += "?providerEmail=$providerEmail";
-      await http.put(Uri.parse(url));
+      await http.put(Uri.parse(url), headers: await _getHeaders());
     } catch (e) {
       debugPrint("Update status error: $e");
     }
@@ -200,7 +250,7 @@ class ApiService {
     try {
       String url = "$baseUrl/bookings/stats";
       if (email != null) url += "?email=$email";
-      final response = await http.get(Uri.parse(url));
+      final response = await http.get(Uri.parse(url), headers: await _getHeaders());
       if (response.statusCode == 200) return jsonDecode(response.body);
     } catch (e) {
       debugPrint("Get stats error: $e");
@@ -211,7 +261,7 @@ class ApiService {
   // 💬 CONSULTATIONS (Interactions)
   static Future<bool> deleteBooking(int id) async {
     try {
-      final response = await http.delete(Uri.parse("$baseUrl/bookings/delete/$id"));
+      final response = await http.delete(Uri.parse("$baseUrl/bookings/delete/$id"), headers: await _getHeaders());
       return response.statusCode == 200;
     } catch (e) {
       debugPrint("Delete booking error: $e");
@@ -221,7 +271,7 @@ class ApiService {
 
   static Future<List<dynamic>> getConsultationNotes(int bookingId) async {
     try {
-      final response = await http.get(Uri.parse("$baseUrl/consultations/notes/$bookingId"));
+      final response = await http.get(Uri.parse("$baseUrl/consultations/notes/$bookingId"), headers: await _getHeaders());
       if (response.statusCode == 200) return jsonDecode(response.body);
     } catch (e) {
       debugPrint("Get notes error: $e");
@@ -234,7 +284,7 @@ class ApiService {
     try {
       await http.post(
         Uri.parse("$baseUrl/consultations/note"),
-        headers: {"Content-Type": "application/json"},
+        headers: await _getHeaders(),
         body: jsonEncode({
           "bookingId": bookingId,
           "senderRole": role,
@@ -252,7 +302,7 @@ class ApiService {
     try {
       await http.put(
         Uri.parse("$baseUrl/service-provider/availability"),
-        headers: {"Content-Type": "application/json"},
+        headers: await _getHeaders(),
         body: jsonEncode({"email": email, "isAvailable": status}),
       );
     } catch (e) {
@@ -263,7 +313,7 @@ class ApiService {
   // 🐾 ANIMALS
   static Future<List<dynamic>> getFarmerAnimals(String email) async {
     try {
-      final response = await http.get(Uri.parse("$baseUrl/animals?ownerEmail=$email"));
+      final response = await http.get(Uri.parse("$baseUrl/animals?ownerEmail=$email"), headers: await _getHeaders());
       if (response.statusCode == 200) return jsonDecode(response.body);
     } catch (e) {
       debugPrint("Get animals error: $e");
@@ -275,7 +325,7 @@ class ApiService {
     try {
       final response = await http.post(
         Uri.parse("$baseUrl/animals"),
-        headers: {"Content-Type": "application/json"},
+        headers: await _getHeaders(),
         body: jsonEncode(animal),
       );
       if (response.statusCode == 200) return jsonDecode(response.body);
@@ -287,7 +337,7 @@ class ApiService {
 
   static Future<List<dynamic>> getAnimalVaccinations(int animalId) async {
     try {
-      final response = await http.get(Uri.parse("$baseUrl/animals/$animalId/vaccinations"));
+      final response = await http.get(Uri.parse("$baseUrl/animals/$animalId/vaccinations"), headers: await _getHeaders());
       if (response.statusCode == 200) return jsonDecode(response.body);
     } catch (e) {
       debugPrint("Get animal vaccinations error: $e");
@@ -299,7 +349,7 @@ class ApiService {
     try {
       await http.post(
         Uri.parse("$baseUrl/animals/$animalId/vaccinations"),
-        headers: {"Content-Type": "application/json"},
+        headers: await _getHeaders(),
         body: jsonEncode(record),
       );
     } catch (e) {
@@ -311,7 +361,7 @@ class ApiService {
     try {
       await http.post(
         Uri.parse('$baseUrl/users/fcm-token'),
-        headers: {"Content-Type": "application/json"},
+        headers: await _getHeaders(),
         body: jsonEncode({"email": email, "token": token}),
       );
     } catch (e) {
@@ -321,7 +371,7 @@ class ApiService {
 
   // 💉 VACCINATIONS (General)
   static Future<void> addVaccinationRecord({
-    required String farmerEmail,
+    required String ownerEmail,
     required String animal,
     required String vaccine,
     String? dateGiven,
@@ -333,9 +383,9 @@ class ApiService {
     try {
       await http.post(
         Uri.parse("$baseUrl/vaccinations"),
-        headers: {"Content-Type": "application/json"},
+        headers: await _getHeaders(),
         body: jsonEncode({
-          "farmerEmail": farmerEmail,
+          "ownerEmail": ownerEmail,
           "animalName": animal,
           "vaccineName": vaccine,
           "dateGiven": dateGiven,
@@ -352,7 +402,7 @@ class ApiService {
 
   static Future<List<dynamic>> getFarmerVaccinations(String email) async {
     try {
-      final response = await http.get(Uri.parse("$baseUrl/vaccinations/farmer/$email"));
+      final response = await http.get(Uri.parse("$baseUrl/vaccinations/owner/$email"), headers: await _getHeaders());
       if (response.statusCode == 200) return jsonDecode(response.body);
     } catch (e) {
       debugPrint("Get vaccinations error: $e");
@@ -409,14 +459,18 @@ class ApiService {
     return false;
   }
 
-  static Future<List<String>> getVaccines() async {
+  static Future<List<VaccineTypeModel>> getVaccines({String? species}) async {
     try {
-      final response = await http.get(Uri.parse("$baseUrl/lookup/vaccines"));
+      String url = "$baseUrl/lookup/vaccines";
+      if (species != null && species != 'All') url += "?species=$species";
+      final response = await http.get(Uri.parse(url));
       if (response.statusCode == 200) {
-        return (jsonDecode(response.body) as List).map((e) => e['name'].toString()).toList();
+        return (jsonDecode(response.body) as List)
+            .map((e) => VaccineTypeModel.fromJson(e))
+            .toList();
       }
     } catch (e) { debugPrint("Lookup error: $e"); }
-    return ["FMD", "BQ", "Rabies"];
+    return [];
   }
 
   static Future<List<String>> getServiceTypes() async {
@@ -440,7 +494,7 @@ class ApiService {
   }
 
   // 💳 PAYMENTS
-  static Future<Map<String, dynamic>?> createRazorpayOrder(int bookingId, double amount, String farmerEmail, String providerEmail) async {
+  static Future<Map<String, dynamic>?> createRazorpayOrder(int bookingId, double amount, String ownerEmail, String providerEmail) async {
     try {
       final response = await http.post(
         Uri.parse("$baseUrl/payments/create-order"),
@@ -448,7 +502,7 @@ class ApiService {
         body: jsonEncode({
           "bookingId": bookingId,
           "amount": amount,
-          "farmerEmail": farmerEmail,
+          "ownerEmail": ownerEmail,
           "providerEmail": providerEmail
         }),
       );
@@ -480,7 +534,7 @@ class ApiService {
     return false;
   }
 
-  static Future<bool> recordCashPayment(int bookingId, double amount, String farmerEmail, String providerEmail) async {
+  static Future<bool> recordCashPayment(int bookingId, double amount, String ownerEmail, String providerEmail) async {
     try {
       final response = await http.post(
         Uri.parse("$baseUrl/payments/cash"),
@@ -488,7 +542,7 @@ class ApiService {
         body: jsonEncode({
           "bookingId": bookingId,
           "amount": amount,
-          "farmerEmail": farmerEmail,
+          "ownerEmail": ownerEmail,
           "providerEmail": providerEmail
         }),
       );
@@ -525,6 +579,53 @@ class ApiService {
       debugPrint("Withdraw earnings error: $e");
     }
     return null;
+  }
+
+  // 🛡️ ADMIN
+  static Future<Map<String, dynamic>?> getAdminStats() async {
+    try {
+      final response = await http.get(Uri.parse("$baseUrl/admin/stats"));
+      if (response.statusCode == 200) return jsonDecode(response.body);
+    } catch (e) { debugPrint("Admin stats error: $e"); }
+    return null;
+  }
+
+  static Future<List<dynamic>> getPendingDoctors() async {
+    try {
+      final response = await http.get(Uri.parse("$baseUrl/admin/pending-doctors"));
+      if (response.statusCode == 200) return jsonDecode(response.body);
+    } catch (e) { debugPrint("Pending doctors error: $e"); }
+    return [];
+  }
+
+  static Future<List<dynamic>> getAllDoctors({String? status}) async {
+    try {
+      String url = "$baseUrl/admin/all-doctors";
+      if (status != null) url += "?status=$status";
+      final response = await http.get(Uri.parse(url));
+      if (response.statusCode == 200) return jsonDecode(response.body);
+    } catch (e) { debugPrint("All doctors error: $e"); }
+    return [];
+  }
+
+  static Future<List<dynamic>> getAllPetOwners() async {
+    try {
+      final response = await http.get(Uri.parse("$baseUrl/admin/all-owners"));
+      if (response.statusCode == 200) return jsonDecode(response.body);
+    } catch (e) { debugPrint("All owners error: $e"); }
+    return [];
+  }
+
+  static Future<bool> verifyDoctor(int id, String status, {String? reason}) async {
+    try {
+      final response = await http.put(
+        Uri.parse("$baseUrl/admin/verify-doctor/$id"),
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode({"status": status, if (reason != null) "reason": reason}),
+      );
+      return response.statusCode == 200;
+    } catch (e) { debugPrint("Verify doctor error: $e"); }
+    return false;
   }
 }
 

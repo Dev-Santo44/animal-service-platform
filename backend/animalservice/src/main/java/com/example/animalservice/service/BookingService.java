@@ -47,9 +47,9 @@ public class BookingService {
         return repository.findAll();
     }
 
-    // Get bookings by farmer email
+    // Get bookings by owner email
     public List<Booking> getFarmerBookings(String email) {
-        return repository.findByFarmerEmail(email);
+        return repository.findByOwnerEmail(email);
     }
 
     // Get bookings by provider email
@@ -83,8 +83,8 @@ public class BookingService {
         if (status.equals("ACCEPTED")) {
             b.setProviderEmail(providerEmail);
             
-            // 🔔 Notify Farmer
-            notificationService.sendToUser(b.getFarmerEmail(), "Booking Confirmed", 
+            // 🔔 Notify Pet Owner
+            notificationService.sendToUser(b.getOwnerEmail(), "Booking Confirmed", 
                 "Your " + b.getServiceType() + " appointment has been accepted!");
         }
         

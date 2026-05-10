@@ -10,7 +10,7 @@ import java.util.List;
 @Repository
 public interface VaccinationRepository extends JpaRepository<VaccinationRecord, Integer> {
 
-    List<VaccinationRecord> findByFarmerEmail(String farmerEmail);
+    List<VaccinationRecord> findByOwnerEmail(String ownerEmail);
 
     List<VaccinationRecord> findByAnimalId(int animalId);
 

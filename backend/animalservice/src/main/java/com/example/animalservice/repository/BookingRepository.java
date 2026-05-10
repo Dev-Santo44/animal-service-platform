@@ -7,8 +7,8 @@ import java.util.List;
 
 public interface BookingRepository extends JpaRepository<Booking, Integer> {
 
-    // Get bookings by farmer email
-    List<Booking> findByFarmerEmail(String farmerEmail);
+    // Get bookings by owner email
+    List<Booking> findByOwnerEmail(String ownerEmail);
 
     // Get bookings by provider email
     List<Booking> findByProviderEmail(String providerEmail);

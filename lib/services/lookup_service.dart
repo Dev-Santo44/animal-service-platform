@@ -1,4 +1,5 @@
 import '../services/api_service.dart';
+import '../models/vaccine_type.dart';
 
 class LookupService {
   static final LookupService _instance = LookupService._internal();
@@ -20,10 +21,17 @@ class LookupService {
       ApiService.getDistricts(),
     ]);
 
-    species = results[0];
-    vaccines = results[1];
-    services = results[2];
-    districts = results[3];
+    species = (results[0] as List).map((e) => e.toString()).toList();
+    // results[1] is List<VaccineTypeModel>
+    final vaccineModels = results[1] as List;
+    vaccines = vaccineModels.map((e) {
+      if (e is String) return e;
+      if (e is VaccineTypeModel) return e.name;
+      if (e is Map && e.containsKey('name')) return e['name'].toString();
+      return e.toString();
+    }).toList();
+    services = (results[2] as List).map((e) => e.toString()).toList();
+    districts = (results[3] as List).map((e) => e.toString()).toList();
     isLoaded = true;
   }
 }

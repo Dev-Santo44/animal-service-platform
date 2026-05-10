@@ -13,7 +13,8 @@ public class VaccinationRecord {
 
     private int animalId;
     private String animalName;
-    private String farmerEmail;
+    @Column(name = "farmer_email")
+    private String ownerEmail;
     private String vaccineName;
     private LocalDate dateGiven;
     private LocalDate nextDueDate;
@@ -31,8 +32,8 @@ public class VaccinationRecord {
     public String getAnimalName() { return animalName; }
     public void setAnimalName(String animalName) { this.animalName = animalName; }
 
-    public String getFarmerEmail() { return farmerEmail; }
-    public void setFarmerEmail(String farmerEmail) { this.farmerEmail = farmerEmail; }
+    public String getOwnerEmail() { return ownerEmail; }
+    public void setOwnerEmail(String ownerEmail) { this.ownerEmail = ownerEmail; }
 
     public String getVaccineName() { return vaccineName; }
     public void setVaccineName(String vaccineName) { this.vaccineName = vaccineName; }

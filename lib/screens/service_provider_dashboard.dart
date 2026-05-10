@@ -104,6 +104,7 @@ class _ProviderHomeTabState extends State<ProviderHomeTab> {
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
     final user = Session.currentUser;
+    final verificationStatus = user?['verificationStatus'] ?? 'APPROVED';
 
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
@@ -111,6 +112,45 @@ class _ProviderHomeTabState extends State<ProviderHomeTab> {
         onRefresh: () async => loadData(),
         child: CustomScrollView(
           slivers: [
+            // F1: Verification status banner
+            if (verificationStatus == 'PENDING')
+              SliverToBoxAdapter(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  color: Colors.orange.shade100,
+                  child: Row(
+                    children: [
+                      Icon(Icons.hourglass_top, color: Colors.orange.shade700, size: 18),
+                      const SizedBox(width: 8),
+                      const Expanded(
+                        child: Text(
+                          "⏳ Your license is under review. You cannot accept bookings yet.",
+                          style: TextStyle(fontSize: 13),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            if (verificationStatus == 'REJECTED')
+              SliverToBoxAdapter(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  color: Colors.red.shade100,
+                  child: Row(
+                    children: [
+                      Icon(Icons.cancel_outlined, color: Colors.red.shade700, size: 18),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          "❌ Verification failed: ${user?['rejectionReason'] ?? 'Contact support'}.",
+                          style: const TextStyle(fontSize: 13),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(24, 60, 24, 20),
@@ -270,7 +310,28 @@ class _ProviderHomeTabState extends State<ProviderHomeTab> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(b['serviceType'] ?? "Consultation", style: const TextStyle(fontWeight: FontWeight.bold)),
-                    Text(b['farmerEmail'] ?? "Farmer", style: TextStyle(color: Colors.grey.shade500, fontSize: 12)),
+                    Text(b['ownerEmail'] ?? "Owner", style: TextStyle(color: Colors.grey.shade500, fontSize: 12)),
+                    // F7: Visit type indicator
+                    Row(children: [
+                      Icon(
+                        b['visitType'] == 'HOME_VISIT' ? Icons.home : Icons.local_hospital,
+                        size: 13,
+                        color: b['visitType'] == 'HOME_VISIT' ? Colors.green : Colors.blue,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        b['visitType'] == 'HOME_VISIT' ? "Home Visit" : "In-Hospital",
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: b['visitType'] == 'HOME_VISIT' ? Colors.green : Colors.blue,
+                        ),
+                      ),
+                    ]),
+                    if (b['visitType'] == 'HOME_VISIT' && b['visitAddress'] != null)
+                      Text(
+                        "📍 ${b['visitAddress']}, ${b['visitCity'] ?? ''} - ${b['visitPincode'] ?? ''}",
+                        style: TextStyle(color: Colors.grey.shade700, fontSize: 11),
+                      ),
                   ],
                 ),
               ),

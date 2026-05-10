@@ -27,7 +27,7 @@ public class ScheduledTaskService {
         for (VaccinationRecord record : records) {
             if (record.getNextDueDate().equals(tomorrow)) {
                 notificationService.sendToUser(
-                    record.getFarmerEmail(),
+                    record.getOwnerEmail(),
                     "Vaccination Reminder",
                     "Reminder: " + record.getAnimalName() + " is due for " + record.getVaccineName() + " tomorrow."
                 );

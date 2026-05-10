@@ -12,7 +12,8 @@ public class Payment {
     private Long id;
 
     private int bookingId;
-    private String farmerEmail;
+    @Column(name = "farmer_email")
+    private String ownerEmail;
     private String providerEmail;
     private Double amount;
 
@@ -40,8 +41,8 @@ public class Payment {
     public int getBookingId() { return bookingId; }
     public void setBookingId(int bookingId) { this.bookingId = bookingId; }
 
-    public String getFarmerEmail() { return farmerEmail; }
-    public void setFarmerEmail(String farmerEmail) { this.farmerEmail = farmerEmail; }
+    public String getOwnerEmail() { return ownerEmail; }
+    public void setOwnerEmail(String ownerEmail) { this.ownerEmail = ownerEmail; }
 
     public String getProviderEmail() { return providerEmail; }
     public void setProviderEmail(String providerEmail) { this.providerEmail = providerEmail; }

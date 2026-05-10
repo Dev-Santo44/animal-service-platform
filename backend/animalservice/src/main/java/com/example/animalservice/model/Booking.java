@@ -11,7 +11,8 @@ public class Booking {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    private String farmerEmail;
+    @Column(name = "farmer_email")
+    private String ownerEmail;
     private String providerEmail;
     private String serviceType;
     private String status;
@@ -33,8 +34,8 @@ public class Booking {
     public int getId() { return id; }
     public void setId(int id) { this.id = id; }
 
-    public String getFarmerEmail() { return farmerEmail; }
-    public void setFarmerEmail(String farmerEmail) { this.farmerEmail = farmerEmail; }
+    public String getOwnerEmail() { return ownerEmail; }
+    public void setOwnerEmail(String ownerEmail) { this.ownerEmail = ownerEmail; }
 
     public String getProviderEmail() { return providerEmail; }
     public void setProviderEmail(String providerEmail) { this.providerEmail = providerEmail; }
@@ -59,4 +60,23 @@ public class Booking {
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+
+    // Feature 7 — Visit Type (v2.0)
+    private String visitType = "IN_HOSPITAL"; // HOME_VISIT or IN_HOSPITAL
+    private String visitAddress;
+    private String visitCity;
+    private String visitPincode;
+
+    public String getVisitType() { return visitType; }
+    public void setVisitType(String visitType) { this.visitType = visitType; }
+
+    public String getVisitAddress() { return visitAddress; }
+    public void setVisitAddress(String visitAddress) { this.visitAddress = visitAddress; }
+
+    public String getVisitCity() { return visitCity; }
+    public void setVisitCity(String visitCity) { this.visitCity = visitCity; }
+
+    public String getVisitPincode() { return visitPincode; }
+    public void setVisitPincode(String visitPincode) { this.visitPincode = visitPincode; }
 }
+

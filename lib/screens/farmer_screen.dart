@@ -27,6 +27,7 @@ class _FarmerScreenState extends State<FarmerScreen> {
   final List<Widget> _pages = const [
     FarmerHomeTab(),
     ProviderListScreen(),
+    VaccinationListScreen(),  // F6: Added Vaccinations tab
     MapScreen(),
     ProfileScreen(),
   ];
@@ -51,6 +52,10 @@ class _FarmerScreenState extends State<FarmerScreen> {
               icon: const Icon(Icons.people_outline),
               selectedIcon: const Icon(Icons.people, color: AppTheme.farmerPrimary),
               label: l.doctors),
+          NavigationDestination(
+              icon: const Icon(Icons.vaccines_outlined),      // F6: Vaccinations nav
+              selectedIcon: const Icon(Icons.vaccines, color: AppTheme.farmerPrimary),
+              label: "Vaccinations"),
           NavigationDestination(
               icon: const Icon(Icons.map_outlined),
               selectedIcon: const Icon(Icons.map, color: AppTheme.farmerPrimary),
@@ -114,15 +119,15 @@ class _FarmerHomeTabState extends State<FarmerHomeTab> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text("Farmer Portal", style: TextStyle(fontWeight: FontWeight.bold, color: AppTheme.farmerPrimary)),
+                        const Text("Pet Owner Portal", style: TextStyle(fontWeight: FontWeight.bold, color: AppTheme.farmerPrimary)),  // F2
                         const LanguageSwitcher(),
                       ],
                     ),
                     const SizedBox(height: 20),
                     AnimatedGreetingCard(
-                      name: user?['name']?.split(' ')[0] ?? 'Farmer',
+                      name: user?['name']?.split(' ')[0] ?? 'Pet Owner',  // F2
                       color: AppTheme.farmerPrimary,
-                      subtitle: "Manage your livestock and book vet services with ease.",
+                      subtitle: "Manage your pets and book vet services with ease.",
                     ),
                   ],
                 ),
@@ -252,8 +257,7 @@ class _FarmerHomeTabState extends State<FarmerHomeTab> {
                        const SizedBox(height: 8),
                        Text(l.noActiveAppointments, style: TextStyle(color: Colors.grey.shade400, fontSize: 13)),
                     ],
-                    const SizedBox(height: 32),
-                  ],
+                    const SizedBox(height: 32),                  ],
                 ),
               ),
             ),
@@ -340,7 +344,24 @@ class _FarmerHomeTabState extends State<FarmerHomeTab> {
     final user = Session.currentUser;
     if (user == null) return;
 
+    // F7: Pick Visit Type first
+    String selectedVisitType = 'IN_HOSPITAL';
+    String? visitAddress;
+    String? visitCity;
+    String? visitPincode;
+
+    final visitTypeResult = await showDialog<Map<String, dynamic>>(
+      context: context,
+      builder: (ctx) => _VisitTypeDialog(),
+    );
+    if (visitTypeResult == null) return;
+    selectedVisitType = visitTypeResult['type'];
+    visitAddress = visitTypeResult['address'];
+    visitCity = visitTypeResult['city'];
+    visitPincode = visitTypeResult['pincode'];
+
     // 1. Pick Date
+    if (!mounted) return;
     DateTime? selectedDate = await showDatePicker(
       context: context,
       initialDate: DateTime.now().add(const Duration(days: 1)),
@@ -352,6 +373,7 @@ class _FarmerHomeTabState extends State<FarmerHomeTab> {
     if (selectedDate == null) return;
 
     // 2. Pick Time
+    if (!mounted) return;
     TimeOfDay? selectedTime = await showTimePicker(
       context: context,
       initialTime: const TimeOfDay(hour: 10, minute: 30),
@@ -373,12 +395,16 @@ class _FarmerHomeTabState extends State<FarmerHomeTab> {
     final timeStr = "${selectedTime.hour.toString().padLeft(2, '0')}:${selectedTime.minute.toString().padLeft(2, '0')} ${selectedTime.period == DayPeriod.am ? 'AM' : 'PM'}";
 
     await ApiService.createBooking(
-      user['email'], 
+      user['email'],
       service,
       date: dateStr,
       time: timeStr,
+      visitType: selectedVisitType,
+      visitAddress: visitAddress,
+      visitCity: visitCity,
+      visitPincode: visitPincode,
     );
-    
+
     if (mounted) {
       Navigator.pop(context); // Close loading
       loadData();
@@ -386,5 +412,112 @@ class _FarmerHomeTabState extends State<FarmerHomeTab> {
         SnackBar(content: Text(l.bookingRequestSent(service)), behavior: SnackBarBehavior.floating),
       );
     }
+  }
+}
+
+// F7: Visit Type Selection Dialog
+class _VisitTypeDialog extends StatefulWidget {
+  @override
+  State<_VisitTypeDialog> createState() => _VisitTypeDialogState();
+}
+
+class _VisitTypeDialogState extends State<_VisitTypeDialog> {
+  String _visitType = 'IN_HOSPITAL';
+  final _addressCtrl = TextEditingController();
+  final _cityCtrl = TextEditingController();
+  final _pincodeCtrl = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Visit Type'),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      content: Form(
+        key: _formKey,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SegmentedButton<String>(
+                segments: const [
+                  ButtonSegment(
+                    value: 'IN_HOSPITAL',
+                    label: Text('In-Hospital'),
+                    icon: Icon(Icons.local_hospital),
+                  ),
+                  ButtonSegment(
+                    value: 'HOME_VISIT',
+                    label: Text('Home Visit'),
+                    icon: Icon(Icons.home),
+                  ),
+                ],
+                selected: {_visitType},
+                onSelectionChanged: (s) => setState(() => _visitType = s.first),
+              ),
+              AnimatedCrossFade(
+                duration: const Duration(milliseconds: 300),
+                firstChild: const SizedBox.shrink(),
+                secondChild: Column(
+                  children: [
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      controller: _addressCtrl,
+                      decoration: const InputDecoration(
+                        labelText: 'Street Address',
+                        prefixIcon: Icon(Icons.home_outlined),
+                      ),
+                      validator: (v) => _visitType == 'HOME_VISIT' && (v == null || v.isEmpty)
+                          ? 'Address required'
+                          : null,
+                    ),
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      controller: _cityCtrl,
+                      decoration: const InputDecoration(
+                        labelText: 'City',
+                        prefixIcon: Icon(Icons.location_city_outlined),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      controller: _pincodeCtrl,
+                      keyboardType: TextInputType.number,
+                      decoration: const InputDecoration(
+                        labelText: 'Pincode',
+                        prefixIcon: Icon(Icons.pin_drop_outlined),
+                      ),
+                    ),
+                  ],
+                ),
+                crossFadeState: _visitType == 'HOME_VISIT'
+                    ? CrossFadeState.showSecond
+                    : CrossFadeState.showFirst,
+              ),
+            ],
+          ),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancel'),
+        ),
+        ElevatedButton(
+          onPressed: () {
+            if (_formKey.currentState!.validate()) {
+              Navigator.pop(context, {
+                'type': _visitType,
+                'address': _visitType == 'HOME_VISIT' ? _addressCtrl.text : null,
+                'city': _visitType == 'HOME_VISIT' ? _cityCtrl.text : null,
+                'pincode': _visitType == 'HOME_VISIT' ? _pincodeCtrl.text : null,
+              });
+            }
+          },
+          style: ElevatedButton.styleFrom(minimumSize: const Size(80, 40)),
+          child: const Text('Continue'),
+        ),
+      ],
+    );
   }
 }

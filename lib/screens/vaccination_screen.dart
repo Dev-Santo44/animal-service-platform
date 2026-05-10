@@ -149,7 +149,7 @@ class _VaccinationScreenState extends State<VaccinationScreen> {
             ],
           ),
           const SizedBox(height: 12),
-          _rowInfo(Icons.vaccines, l.vaccine, r['vaccineName']),
+          _rowInfo(Icons.vaccines, l.vaccine, r['vaccineName'] ?? "Vaccine"),
           if (!isUpcoming) ...[
             const SizedBox(height: 8),
             _rowInfo(Icons.calendar_today, l.givenOn,
@@ -287,7 +287,7 @@ class _VaccinationScreenState extends State<VaccinationScreen> {
                     vaccineController.text.isNotEmpty) {
                   final user = Session.currentUser;
                   await ApiService.addVaccinationRecord(
-                    farmerEmail: user!['email'],
+                    ownerEmail: user!['email'],
                     animal: animalController.text,
                     vaccine: vaccineController.text,
                     dateGiven: selectedStatus == "COMPLETED"

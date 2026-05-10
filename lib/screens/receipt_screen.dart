@@ -51,7 +51,7 @@ class ReceiptScreen extends StatelessWidget {
                       crossAxisAlignment: pw.CrossAxisAlignment.start,
                       children: [
                         pw.Text("${AppLocalizations.of(context)!.serviceType}: ${booking['serviceType'] ?? AppLocalizations.of(context)!.consultation}"),
-                        pw.Text("${AppLocalizations.of(context)!.patientId}: ${booking['farmerEmail'] ?? AppLocalizations.of(context)!.nA}"),
+                        pw.Text("${AppLocalizations.of(context)!.patientId}: ${booking['ownerEmail'] ?? AppLocalizations.of(context)!.nA}"),
                       ],
                     ),
                     pw.Column(
@@ -161,7 +161,7 @@ class ReceiptScreen extends StatelessWidget {
                   shrinkWrap: true,
                   children: [
                     _infoRow(AppLocalizations.of(context)!.serviceType, booking['serviceType'] ?? AppLocalizations.of(context)!.consultation),
-                    _infoRow(AppLocalizations.of(context)!.patientId, booking['farmerEmail'] ?? AppLocalizations.of(context)!.nA),
+                    _infoRow(AppLocalizations.of(context)!.patientId, booking['ownerEmail'] ?? AppLocalizations.of(context)!.nA),
                     const Divider(height: 40),
                     
                     if (medications.isNotEmpty) ...[

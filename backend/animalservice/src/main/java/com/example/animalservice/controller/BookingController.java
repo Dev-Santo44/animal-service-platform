@@ -26,8 +26,8 @@ public class BookingController {
         return bookingService.getAllBookings();
     }
 
-    @GetMapping("/farmer/{email}")
-    public List<Booking> getFarmerBookings(@PathVariable String email) {
+    @GetMapping("/owner/{email}")
+    public List<Booking> getOwnerBookings(@PathVariable String email) {
         return bookingService.getFarmerBookings(email);
     }
 

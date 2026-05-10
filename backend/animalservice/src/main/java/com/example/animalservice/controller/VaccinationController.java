@@ -20,9 +20,9 @@ public class VaccinationController {
         return vaccinationService.addRecord(record);
     }
 
-    @GetMapping("/farmer/{email}")
-    public List<VaccinationRecord> getByFarmer(@PathVariable String email) {
-        return vaccinationService.getByFarmer(email);
+    @GetMapping("/owner/{email}")
+    public List<VaccinationRecord> getByOwner(@PathVariable String email) {
+        return vaccinationService.getByOwner(email);
     }
 
     @GetMapping("/animal/{animalId}")

@@ -246,7 +246,7 @@ class _ConsultationDetailScreenState extends State<ConsultationDetailScreen> {
               Text(widget.booking['serviceType']?.toString() ?? AppLocalizations.of(context)!.consultation),
               Text(
                 _isDoctor
-                    ? '${AppLocalizations.of(context)!.patient}: ${widget.booking['farmerEmail'] ?? ''}'
+                    ? '${AppLocalizations.of(context)!.patient}: ${widget.booking['ownerEmail'] ?? ''}'
                     : '${AppLocalizations.of(context)!.role}: ${widget.booking['status'] ?? ''}',
                 style: const TextStyle(fontSize: 11, fontWeight: FontWeight.normal, color: Colors.grey),
               ),
@@ -258,7 +258,7 @@ class _ConsultationDetailScreenState extends State<ConsultationDetailScreen> {
                 icon: const Icon(Icons.history, color: AppTheme.primaryColor),
                 onPressed: () => Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => MedicalHistoryScreen(farmerEmail: widget.booking['farmerEmail'])),
+                  MaterialPageRoute(builder: (_) => MedicalHistoryScreen(ownerEmail: widget.booking['ownerEmail'])),
                 ),
                 tooltip: "Medical History",
               ),
@@ -313,7 +313,7 @@ class _ConsultationDetailScreenState extends State<ConsultationDetailScreen> {
   bool _loadingVaccines = false;
 
   Future<void> _loadVaccinations() async {
-    final email = widget.booking['farmerEmail'];
+    final email = widget.booking['ownerEmail'];
     if (email == null) return;
     setState(() => _loadingVaccines = true);
     final data = await ApiService.getFarmerVaccinations(email);
@@ -468,7 +468,7 @@ class _ConsultationDetailScreenState extends State<ConsultationDetailScreen> {
               onPressed: () async {
                 if (animalCtrl.text.isNotEmpty && vaccineCtrl.text.isNotEmpty) {
                   await ApiService.addVaccinationRecord(
-                    farmerEmail: widget.booking['farmerEmail'],
+                    ownerEmail: widget.booking['ownerEmail'],
                     animal: animalCtrl.text,
                     vaccine: vaccineCtrl.text,
                     status: selectedStatus,
@@ -672,7 +672,7 @@ class _ConsultationDetailScreenState extends State<ConsultationDetailScreen> {
       final orderData = await ApiService.createRazorpayOrder(
         _bookingId,
         totalCharge,
-        widget.booking['farmerEmail'],
+        widget.booking['ownerEmail'],
         widget.booking['providerEmail'],
       );
 
@@ -685,7 +685,7 @@ class _ConsultationDetailScreenState extends State<ConsultationDetailScreen> {
             'description': 'Consultation Fee',
             'order_id': orderData['orderId'],
             'prefill': {
-              'email': widget.booking['farmerEmail'],
+              'email': widget.booking['ownerEmail'],
             },
           },
           onSuccess: (paymentId, orderId, signature) async {
@@ -720,7 +720,7 @@ class _ConsultationDetailScreenState extends State<ConsultationDetailScreen> {
       final success = await ApiService.recordCashPayment(
         _bookingId,
         totalCharge,
-        widget.booking['farmerEmail'],
+        widget.booking['ownerEmail'],
         widget.booking['providerEmail'],
       );
 

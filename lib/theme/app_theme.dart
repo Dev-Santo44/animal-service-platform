@@ -26,15 +26,33 @@ class AppTheme {
         ),
         titleLarge: GoogleFonts.outfit(
           fontWeight: FontWeight.w600,
-          fontSize: 22,
+          fontSize: 22,   // F3: was 22, keep as spec
+        ),
+        titleMedium: GoogleFonts.outfit(
+          fontWeight: FontWeight.w600,
+          fontSize: 18,   // F3: new
+        ),
+        titleSmall: GoogleFonts.outfit(
+          fontWeight: FontWeight.w600,
+          fontSize: 15,   // F3: new
         ),
         bodyLarge: GoogleFonts.inter(
-          fontSize: 16,
+          fontSize: 17,   // F3: was 16
           color: Colors.black87,
         ),
         bodyMedium: GoogleFonts.inter(
-          fontSize: 14,
+          fontSize: 15,   // F3: was 14
           color: Colors.black54,
+        ),
+        bodySmall: GoogleFonts.inter(
+          fontSize: 13,   // F3: was 11-12
+          color: Colors.black54,
+        ),
+        labelMedium: GoogleFonts.inter(
+          fontSize: 13,
+        ),
+        labelSmall: GoogleFonts.inter(
+          fontSize: 11,
         ),
       ),
       appBarTheme: const AppBarTheme(
@@ -60,10 +78,11 @@ class AppTheme {
           ),
           textStyle: GoogleFonts.outfit(
             fontWeight: FontWeight.w600,
-            fontSize: 16,
+            fontSize: 17,  // F3: was 16
           ),
         ),
       ),
+
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: Colors.white,

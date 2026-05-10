@@ -4,26 +4,45 @@ import com.example.animalservice.model.ServiceProvider;
 import com.example.animalservice.repository.ServiceProviderRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import java.util.logging.Logger;
 
 import java.util.List;
 import java.util.Optional;
 
 @Service
 public class ServiceProviderService {
+    private static final Logger log = Logger.getLogger(ServiceProviderService.class.getName());
 
     @Autowired
     private ServiceProviderRepository repository;
 
+    @Autowired
+    private org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder passwordEncoder;
+
     public ServiceProvider register(ServiceProvider provider) {
+        // Hash password before saving
+        provider.setPassword(passwordEncoder.encode(provider.getPassword()));
         return repository.save(provider);
     }
 
     public ServiceProvider login(String email, String password) {
         ServiceProvider user = repository.findByEmail(email);
+        if (user == null) return null;
 
-        if (user != null && user.getPassword().equals(password)) {
+        // 1. Try BCrypt Match (Standard)
+        if (passwordEncoder.matches(password, user.getPassword())) {
             return user;
         }
+
+        // 2. Legacy Migration: Try Plain Text Match (Only if DB entry isn't BCrypt yet)
+        if (password.equals(user.getPassword())) {
+            // Auto-repair: Hash the password now for future logins
+            user.setPassword(passwordEncoder.encode(password));
+            repository.save(user);
+            log.info("Legacy user migrated to BCrypt: " + email);
+            return user;
+        }
+
         return null;
     }
 
