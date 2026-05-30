@@ -42,6 +42,4 @@ flutter:
   uses-material-design: true
 
   assets:
-    - assets/images/splash.png
-    - assets/images/register.png
-    - assets/images/register_bg.png
+    - assets/images/

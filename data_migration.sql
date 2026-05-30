@@ -31,3 +31,9 @@ VALUES
 (1, 'Farmer', 'Farmer John', 'She is much better, but still has a slight limp.', 'MESSAGE', NOW()),
 (1, 'Service Provider', 'Dr. Rajesh Patil', 'Paracetamol 500mg — 1 tablet daily', 'MEDICATION', NOW()),
 (1, 'Service Provider', 'Dr. Rajesh Patil', 'Consultation Fee: ₹500', 'CHARGE', NOW());
+
+-- 5. Seed Super Admin User (admin@pawcare.com / admin123)
+-- The backend service automatically upgrades plain-text passwords to BCrypt on first login
+INSERT INTO service_provider (name, email, password, role, is_available, verification_status)
+VALUES ('Super Admin', 'admin@pawcare.com', 'admin123', 'Admin', true, 'APPROVED');
+

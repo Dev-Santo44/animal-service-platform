@@ -55,7 +55,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFFF0F7F0),
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -87,6 +87,11 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
 
             const SizedBox(height: 40),
 
+            // ── ANIMAL SHOWCASE ──
+            _buildAnimalShowcase(context),
+
+            const SizedBox(height: 40),
+
             // ── CTA BUTTONS ──
             _buildCtaSection(context),
 
@@ -101,99 +106,137 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   }
 
   Widget _buildHeroSection(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [AppTheme.primaryColor, Color(0xFF2E7D32), Color(0xFF1565C0)],
-          stops: [0.0, 0.5, 1.0],
-        ),
-        borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(40),
-          bottomRight: Radius.circular(40),
-        ),
-      ),
-      child: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(28, 40, 28, 50),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Logo row
-              Row(
+    return SizedBox(
+      height: 520,
+      child: Stack(
+        children: [
+          // Background image
+          Positioned.fill(
+            child: Image.asset(
+              "assets/images/dog.jpg",
+              fit: BoxFit.cover,
+            ),
+          ),
+          // Gradient overlay
+          Positioned.fill(
+            child: Container(
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Color(0xCC1B5E20),
+                    Color(0xAA2E7D32),
+                    Color(0x881565C0),
+                  ],
+                  stops: [0.0, 0.5, 1.0],
+                ),
+              ),
+            ),
+          ),
+          // Bottom fade
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            height: 80,
+            child: Container(
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [Colors.transparent, Color(0xFFF0F7F0)],
+                ),
+              ),
+            ),
+          ),
+          // Content
+          SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(28, 30, 28, 50),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const Icon(Icons.pets, color: Colors.white, size: 28),
+                  // Logo row
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.white.withOpacity(0.3)),
+                        ),
+                        child: const Icon(Icons.pets, color: Colors.white, size: 28),
+                      ),
+                      const SizedBox(width: 12),
+                      const Text(
+                        "PawCare",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 28,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 1.5,
+                          shadows: [Shadow(blurRadius: 8, color: Colors.black38)],
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(height: 40),
                   const Text(
-                    "PawCare",
+                    "Your Pet Deserves\nthe Best Care",
                     style: TextStyle(
                       color: Colors.white,
-                      fontSize: 26,
+                      fontSize: 36,
                       fontWeight: FontWeight.bold,
-                      letterSpacing: 1,
+                      height: 1.2,
+                      shadows: [Shadow(blurRadius: 10, color: Colors.black45)],
                     ),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    "Connect with verified veterinary doctors, track vaccinations, and manage your pet's health — all in one place.",
+                    style: TextStyle(
+                      color: Colors.white.withOpacity(0.9),
+                      fontSize: 15,
+                      height: 1.6,
+                      shadows: const [Shadow(blurRadius: 6, color: Colors.black38)],
+                    ),
+                  ),
+                  const SizedBox(height: 28),
+                  Wrap(
+                    spacing: 10,
+                    runSpacing: 8,
+                    children: [
+                      _heroBadge(Icons.verified_user_outlined, "Verified Vets"),
+                      _heroBadge(Icons.schedule_outlined, "24/7 Booking"),
+                      _heroBadge(Icons.vaccines_outlined, "Vaccination Tracker"),
+                    ],
                   ),
                 ],
               ),
-              const SizedBox(height: 36),
-              const Text(
-                "Your Pet Deserves\nthe Best Care",
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 34,
-                  fontWeight: FontWeight.bold,
-                  height: 1.25,
-                ),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                "Connect with verified veterinary doctors, track vaccinations, and manage your pet's health — all in one place.",
-                style: TextStyle(
-                  color: Colors.white.withOpacity(0.85),
-                  fontSize: 15,
-                  height: 1.5,
-                ),
-              ),
-              const SizedBox(height: 32),
-              Row(
-                children: [
-                  _heroBadge(Icons.verified_user_outlined, "Verified Vets"),
-                  const SizedBox(width: 12),
-                  _heroBadge(Icons.schedule_outlined, "24/7 Booking"),
-                  const SizedBox(width: 12),
-                  _heroBadge(Icons.vaccines_outlined, "Vaccination Tracker"),
-                ],
-              ),
-            ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
 
   Widget _heroBadge(IconData icon, String label) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.15),
+        color: Colors.white.withOpacity(0.18),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white.withOpacity(0.3)),
+        border: Border.all(color: Colors.white.withOpacity(0.4)),
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 6)],
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(icon, color: Colors.white, size: 14),
-          const SizedBox(width: 5),
-          Text(label, style: const TextStyle(color: Colors.white, fontSize: 11)),
+          const SizedBox(width: 6),
+          Text(label, style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w500)),
         ],
       ),
     );
@@ -206,24 +249,28 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
         'title': 'Book Consultations',
         'desc': 'Instantly book vet appointments at home or in-clinic.',
         'color': AppTheme.doctorPrimary,
+        'image': 'assets/images/cat.jpg',
       },
       {
         'icon': Icons.vaccines_outlined,
         'title': 'Vaccination Tracker',
         'desc': 'Track vaccination schedules. Get reminders before due dates.',
         'color': Colors.orange,
+        'image': 'assets/images/dog.jpg',
       },
       {
         'icon': Icons.map_outlined,
         'title': 'Find Nearby Vets',
         'desc': 'Discover government & private vets near you on the map.',
         'color': Colors.teal,
+        'image': 'assets/images/dogesh.jpg',
       },
       {
         'icon': Icons.star_outline,
         'title': 'Trusted Reviews',
         'desc': 'Read community ratings before choosing a veterinarian.',
         'color': Colors.amber,
+        'image': 'assets/images/alec-favale-Ivzo69e18nk-unsplash.jpg',
       },
     ];
 
@@ -234,7 +281,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
         children: [
           const Text(
             "Why PawCare?",
-            style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF1B5E20)),
           ),
           const SizedBox(height: 4),
           Text("Everything your pet needs, in one app.",
@@ -247,37 +294,65 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
               crossAxisCount: 2,
               crossAxisSpacing: 14,
               mainAxisSpacing: 14,
-              childAspectRatio: 0.92,
+              childAspectRatio: 0.85,
             ),
             itemCount: benefits.length,
             itemBuilder: (context, i) {
               final b = benefits[i];
               final color = b['color'] as Color;
               return Container(
-                padding: const EdgeInsets.all(18),
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.07),
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: color.withOpacity(0.15)),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: color.withOpacity(0.15),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Icon(b['icon'] as IconData, color: color, size: 24),
-                    ),
-                    const SizedBox(height: 14),
-                    Text(b['title'] as String,
-                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-                    const SizedBox(height: 6),
-                    Text(b['desc'] as String,
-                        style: TextStyle(color: Colors.grey.shade600, fontSize: 12, height: 1.4)),
+                  boxShadow: [
+                    BoxShadow(color: color.withOpacity(0.15), blurRadius: 12, offset: const Offset(0, 6)),
                   ],
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(20),
+                  child: Stack(
+                    children: [
+                      Positioned.fill(
+                        child: Image.asset(b['image'] as String, fit: BoxFit.cover),
+                      ),
+                      Positioned.fill(
+                        child: Container(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              colors: [
+                                color.withOpacity(0.5),
+                                Colors.black.withOpacity(0.75),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(9),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.2),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(color: Colors.white.withOpacity(0.3)),
+                              ),
+                              child: Icon(b['icon'] as IconData, color: Colors.white, size: 22),
+                            ),
+                            const Spacer(),
+                            Text(b['title'] as String,
+                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.white)),
+                            const SizedBox(height: 4),
+                            Text(b['desc'] as String,
+                                style: TextStyle(color: Colors.white.withOpacity(0.85), fontSize: 11, height: 1.4)),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               );
             },
@@ -293,16 +368,19 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
         'num': '1',
         'title': 'Create Your Account',
         'desc': 'Sign up as a Pet Owner or register as a verified Doctor.',
+        'color': AppTheme.primaryColor,
       },
       {
         'num': '2',
         'title': 'Find & Book a Vet',
         'desc': 'Browse nearby vets or book a home visit in minutes.',
+        'color': AppTheme.doctorPrimary,
       },
       {
         'num': '3',
         'title': 'Track Pet Health',
         'desc': 'Manage vaccinations, records, and consultation history.',
+        'color': Colors.teal,
       },
     ];
 
@@ -313,7 +391,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
         children: [
           const Text(
             "How It Works",
-            style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF1B5E20)),
           ),
           const SizedBox(height: 4),
           Text("Get started in 3 simple steps.",
@@ -321,53 +399,136 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
           const SizedBox(height: 20),
           ...steps.asMap().entries.map((entry) {
             final step = entry.value;
+            final color = step['color'] as Color;
             return Container(
               margin: const EdgeInsets.only(bottom: 16),
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(18),
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.04),
-                    blurRadius: 12,
-                    offset: const Offset(0, 4),
+                    color: color.withOpacity(0.1),
+                    blurRadius: 15,
+                    offset: const Offset(0, 6),
                   )
                 ],
+                border: Border.all(color: color.withOpacity(0.1)),
               ),
               child: Row(
                 children: [
                   Container(
-                    width: 42, height: 42,
+                    width: 46, height: 46,
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [AppTheme.primaryColor, AppTheme.doctorPrimary],
+                      gradient: LinearGradient(
+                        colors: [color, color.withOpacity(0.7)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
                       ),
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(14),
+                      boxShadow: [BoxShadow(color: color.withOpacity(0.3), blurRadius: 8, offset: const Offset(0, 4))],
                     ),
-                    child: Text(step['num']!,
+                    child: Text(step['num']! as String,
                         style: const TextStyle(
-                            color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
+                            color: Colors.white, fontWeight: FontWeight.bold, fontSize: 20)),
                   ),
                   const SizedBox(width: 16),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(step['title']!,
+                        Text(step['title']! as String,
                             style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
                         const SizedBox(height: 4),
-                        Text(step['desc']!,
+                        Text(step['desc']! as String,
                             style: TextStyle(color: Colors.grey.shade600, fontSize: 13)),
                       ],
                     ),
                   ),
+                  Icon(Icons.arrow_forward_ios_rounded, color: color.withOpacity(0.5), size: 14),
                 ],
               ),
             );
           }),
         ],
+      ),
+    );
+  }
+
+  Widget _buildAnimalShowcase(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 24),
+          child: Text(
+            "Happy Patients 🐾",
+            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF1B5E20)),
+          ),
+        ),
+        const SizedBox(height: 4),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Text("Animals we've helped care for",
+              style: TextStyle(color: Colors.grey.shade600, fontSize: 14)),
+        ),
+        const SizedBox(height: 16),
+        SizedBox(
+          height: 180,
+          child: ListView(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            children: [
+              _showcaseCard("assets/images/dog.jpg", "Buddy", "Labrador"),
+              _showcaseCard("assets/images/cat.jpg", "Whiskers", "Persian Cat"),
+              _showcaseCard("assets/images/dogesh.jpg", "Max", "German Shepherd"),
+              _showcaseCard("assets/images/zdenek-machacek-OlKkCmToXEs-unsplash.jpg", "Wild", "Exotic Bird"),
+              _showcaseCard("assets/images/alec-favale-Ivzo69e18nk-unsplash.jpg", "Daisy", "Farm Animal"),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _showcaseCard(String imagePath, String name, String breed) {
+    return Container(
+      width: 130,
+      margin: const EdgeInsets.only(right: 14),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.12), blurRadius: 10, offset: const Offset(0, 4))],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(20),
+        child: Stack(
+          children: [
+            Positioned.fill(
+              child: Image.asset(imagePath, fit: BoxFit.cover),
+            ),
+            Positioned(
+              bottom: 0, left: 0, right: 0,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [Colors.transparent, Colors.black87],
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(name, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
+                    Text(breed, style: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 10)),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -379,22 +540,31 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
         children: [
           SizedBox(
             width: double.infinity,
-            height: 54,
+            height: 56,
             child: ElevatedButton(
               onPressed: () => Navigator.push(
                   context, MaterialPageRoute(builder: (_) => const LoginScreen())),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppTheme.primaryColor,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                elevation: 4,
+                shadowColor: AppTheme.primaryColor.withOpacity(0.4),
               ),
-              child: const Text("Login to Your Account",
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              child: const Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.login_rounded, size: 20),
+                  SizedBox(width: 8),
+                  Text("Login to Your Account",
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                ],
+              ),
             ),
           ),
           const SizedBox(height: 14),
           SizedBox(
             width: double.infinity,
-            height: 54,
+            height: 56,
             child: OutlinedButton(
               onPressed: () => Navigator.push(
                   context, MaterialPageRoute(builder: (_) => const RegisterScreen())),
@@ -403,8 +573,15 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                 foregroundColor: AppTheme.primaryColor,
               ),
-              child: const Text("Create Free Account",
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              child: const Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.person_add_rounded, size: 20),
+                  SizedBox(width: 8),
+                  Text("Create Free Account",
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                ],
+              ),
             ),
           ),
         ],
@@ -414,21 +591,27 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
 
   Widget _buildFooter(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(24),
-      color: Colors.grey.shade50,
+      padding: const EdgeInsets.all(28),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [const Color(0xFFF0F7F0), Colors.grey.shade100],
+        ),
+      ),
       child: Column(
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.pets, color: AppTheme.primaryColor, size: 20),
+              const Icon(Icons.pets, color: AppTheme.primaryColor, size: 22),
               const SizedBox(width: 8),
               Text(
                 "PawCare — Animal Service Platform",
                 style: TextStyle(
-                  color: Colors.grey.shade600,
-                  fontWeight: FontWeight.w500,
-                  fontSize: 13,
+                  color: Colors.grey.shade700,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 14,
                 ),
               ),
             ],
@@ -436,7 +619,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
           const SizedBox(height: 8),
           Text(
             "Connecting Pet Owners with Trusted Veterinary Care",
-            style: TextStyle(color: Colors.grey.shade400, fontSize: 11),
+            style: TextStyle(color: Colors.grey.shade400, fontSize: 12),
             textAlign: TextAlign.center,
           ),
         ],

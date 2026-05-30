@@ -110,13 +110,8 @@ class _AnimatedGreetingCardState extends State<AnimatedGreetingCard> with Single
       scale: _scaleAnimation,
       child: Container(
         width: double.infinity,
-        padding: const EdgeInsets.all(24),
+        height: 160,
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [widget.color, widget.color.withOpacity(0.8)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
           borderRadius: BorderRadius.circular(24),
           boxShadow: [
             BoxShadow(
@@ -126,45 +121,80 @@ class _AnimatedGreetingCardState extends State<AnimatedGreetingCard> with Single
             )
           ],
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              "Hello, ${widget.name}! 👋",
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(24),
+          child: Stack(
+            children: [
+              // Animal image background
+              Positioned.fill(
+                child: Image.asset(
+                  "assets/images/dog.jpg",
+                  fit: BoxFit.cover,
+                ),
               ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              widget.subtitle,
-              style: TextStyle(
-                color: Colors.white.withOpacity(0.9),
-                fontSize: 14,
-              ),
-            ),
-            const SizedBox(height: 16),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: const Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.check_circle_outline, color: Colors.white, size: 16),
-                  SizedBox(width: 6),
-                  Text(
-                    "Account Verified",
-                    style: TextStyle(color: Colors.white, fontSize: 12),
+              // Color gradient overlay
+              Positioned.fill(
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        widget.color.withOpacity(0.85),
+                        widget.color.withOpacity(0.5),
+                      ],
+                      begin: Alignment.centerLeft,
+                      end: Alignment.centerRight,
+                    ),
                   ),
-                ],
+                ),
               ),
-            ),
-          ],
+              // Content
+              Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Hello, ${widget.name}! 👋",
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        shadows: [Shadow(blurRadius: 6, color: Colors.black38)],
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      widget.subtitle,
+                      style: TextStyle(
+                        color: Colors.white.withOpacity(0.9),
+                        fontSize: 13,
+                      ),
+                    ),
+                    const Spacer(),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: Colors.white.withOpacity(0.3)),
+                      ),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.check_circle_outline, color: Colors.white, size: 16),
+                          SizedBox(width: 6),
+                          Text(
+                            "Account Verified",
+                            style: TextStyle(color: Colors.white, fontSize: 12),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

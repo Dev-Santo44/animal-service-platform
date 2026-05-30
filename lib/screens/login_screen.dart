@@ -33,16 +33,36 @@ class _LoginScreenState extends State<LoginScreen> {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            Container(
+            SizedBox(
               height: 300,
               width: double.infinity,
-              decoration: BoxDecoration(
-                color: AppTheme.primaryColor.withOpacity(0.05),
-                borderRadius: const BorderRadius.only(
-                    bottomLeft: Radius.circular(80)),
-              ),
               child: Stack(
                 children: [
+                  // Animal image background
+                  Positioned.fill(
+                    child: Image.asset(
+                      "assets/images/cat.jpg",
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                  // Gradient overlay
+                  Positioned.fill(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            AppTheme.primaryColor.withOpacity(0.7),
+                            Colors.white,
+                          ],
+                        ),
+                        borderRadius: const BorderRadius.only(
+                          bottomLeft: Radius.circular(80),
+                        ),
+                      ),
+                    ),
+                  ),
                   // Language switcher top right
                   const Positioned(
                     top: 50,
@@ -61,8 +81,9 @@ class _LoginScreenState extends State<LoginScreen> {
                             shape: BoxShape.circle,
                             boxShadow: [
                               BoxShadow(
-                                  color: Colors.black.withOpacity(0.05),
-                                  blurRadius: 20)
+                                  color: AppTheme.primaryColor.withOpacity(0.2),
+                                  blurRadius: 24,
+                                  spreadRadius: 4)
                             ],
                           ),
                           child: const Icon(Icons.pets,
@@ -73,10 +94,15 @@ class _LoginScreenState extends State<LoginScreen> {
                             style: Theme.of(context)
                                 .textTheme
                                 .displayLarge
-                                ?.copyWith(fontSize: 32)),
+                                ?.copyWith(
+                                  fontSize: 32,
+                                  shadows: const [Shadow(blurRadius: 8, color: Colors.black26)],
+                                )),
                         Text(l.tagline,
                             style: const TextStyle(
-                                color: Colors.grey, letterSpacing: 1)),
+                                color: Colors.white70,
+                                letterSpacing: 1,
+                                shadows: [Shadow(blurRadius: 4, color: Colors.black38)])),
                       ],
                     ),
                   ),

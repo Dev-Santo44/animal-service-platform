@@ -47,16 +47,64 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, size: 20),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: Text(l.createAccount),
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(32),
-        child: Form(
+      body: Stack(
+        children: [
+          // Subtle top animal image background
+          Positioned(
+            top: 0, left: 0, right: 0,
+            height: 200,
+            child: Stack(
+              children: [
+                Positioned.fill(
+                  child: Image.asset(
+                    "assets/images/dogesh.jpg",
+                    fit: BoxFit.cover,
+                  ),
+                ),
+                Positioned.fill(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          AppTheme.primaryColor.withOpacity(0.75),
+                          Colors.white,
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          // Main scrollable content
+          SafeArea(
+            child: Column(
+              children: [
+                // Custom AppBar
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(8, 8, 16, 0),
+                  child: Row(
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.arrow_back_ios_new, size: 20, color: Colors.white),
+                        onPressed: () => Navigator.pop(context),
+                      ),
+                      Text(l.createAccount,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            shadows: [Shadow(blurRadius: 6, color: Colors.black38)],
+                          )),
+                    ],
+                  ),
+                ),
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.fromLTRB(32, 16, 32, 32),
+                    child: Form(
           key: _formKey,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -193,7 +241,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
             ],
           ),
         ),
-      ),
+      ),  // SingleChildScrollView
+    ),  // Expanded
+  ],
+),  // Column
+          ),  // SafeArea
+        ],  // Stack children
+      ),  // Stack
     );
   }
 

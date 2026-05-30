@@ -606,7 +606,7 @@ class ApiService {
   // 🛡️ ADMIN
   static Future<Map<String, dynamic>?> getAdminStats() async {
     try {
-      final response = await http.get(Uri.parse("$baseUrl/admin/stats"));
+      final response = await http.get(Uri.parse("$baseUrl/admin/stats"), headers: await _getHeaders());
       if (response.statusCode == 200) return jsonDecode(response.body);
     } catch (e) { debugPrint("Admin stats error: $e"); }
     return null;
@@ -614,7 +614,7 @@ class ApiService {
 
   static Future<List<dynamic>> getPendingDoctors() async {
     try {
-      final response = await http.get(Uri.parse("$baseUrl/admin/pending-doctors"));
+      final response = await http.get(Uri.parse("$baseUrl/admin/pending-doctors"), headers: await _getHeaders());
       if (response.statusCode == 200) return jsonDecode(response.body);
     } catch (e) { debugPrint("Pending doctors error: $e"); }
     return [];
@@ -624,7 +624,7 @@ class ApiService {
     try {
       String url = "$baseUrl/admin/all-doctors";
       if (status != null) url += "?status=$status";
-      final response = await http.get(Uri.parse(url));
+      final response = await http.get(Uri.parse(url), headers: await _getHeaders());
       if (response.statusCode == 200) return jsonDecode(response.body);
     } catch (e) { debugPrint("All doctors error: $e"); }
     return [];
@@ -632,7 +632,7 @@ class ApiService {
 
   static Future<List<dynamic>> getAllPetOwners() async {
     try {
-      final response = await http.get(Uri.parse("$baseUrl/admin/all-owners"));
+      final response = await http.get(Uri.parse("$baseUrl/admin/all-owners"), headers: await _getHeaders());
       if (response.statusCode == 200) return jsonDecode(response.body);
     } catch (e) { debugPrint("All owners error: $e"); }
     return [];
@@ -642,7 +642,7 @@ class ApiService {
     try {
       final response = await http.put(
         Uri.parse("$baseUrl/admin/verify-doctor/$id"),
-        headers: {"Content-Type": "application/json"},
+        headers: await _getHeaders(),
         body: jsonEncode({"status": status, if (reason != null) "reason": reason}),
       );
       return response.statusCode == 200;

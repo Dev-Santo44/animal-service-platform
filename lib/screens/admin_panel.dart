@@ -55,79 +55,193 @@ class _AdminPanelState extends State<AdminPanel>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey.shade100,
-      appBar: AppBar(
-        title: const Text(
-          "Admin Panel",
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
-        ),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black87,
-        elevation: 0,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: _loadAll,
-          ),
-          IconButton(
-            icon: const Icon(Icons.logout_outlined),
-            onPressed: () async {
-              Session.currentUser = null;
-              Navigator.pushAndRemoveUntil(
-                context,
-                MaterialPageRoute(builder: (_) => const LoginScreen()),
-                (route) => false,
-              );
-            },
-          ),
-        ],
-        bottom: TabBar(
-          controller: _tabController,
-          labelColor: AppTheme.primaryColor,
-          unselectedLabelColor: Colors.grey,
-          indicatorColor: AppTheme.primaryColor,
-          tabs: [
-            Tab(
-              text: "Pending (${stats['pendingDoctors'] ?? pendingDoctors.length})",
-              icon: const Icon(Icons.pending_outlined, size: 18),
-            ),
-            Tab(
-              text: "All Doctors",
-              icon: const Icon(Icons.medical_services_outlined, size: 18),
-            ),
-            Tab(
-              text: "Pet Owners",
-              icon: const Icon(Icons.pets_outlined, size: 18),
-            ),
-          ],
-        ),
-      ),
+      backgroundColor: const Color(0xFFF0F4F8),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
-          : Column(
-              children: [
-                // Stats row
-                _buildStatsRow(),
-                // Tab content
-                Expanded(
-                  child: TabBarView(
+          : NestedScrollView(
+              headerSliverBuilder: (context, innerBoxIsScrolled) => [
+                SliverAppBar(
+                  expandedHeight: 200,
+                  pinned: true,
+                  backgroundColor: AppTheme.primaryColor,
+                  foregroundColor: Colors.white,
+                  title: const Text(
+                    "Admin Panel",
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20, color: Colors.white),
+                  ),
+                  actions: [
+                    IconButton(
+                      icon: const Icon(Icons.refresh, color: Colors.white),
+                      onPressed: _loadAll,
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.logout_outlined, color: Colors.white),
+                      onPressed: () async {
+                        Session.currentUser = null;
+                        Navigator.pushAndRemoveUntil(
+                          context,
+                          MaterialPageRoute(builder: (_) => const LoginScreen()),
+                          (route) => false,
+                        );
+                      },
+                    ),
+                  ],
+                  flexibleSpace: FlexibleSpaceBar(
+                    background: Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        Image.asset(
+                          "assets/images/alec-favale-Ivzo69e18nk-unsplash.jpg",
+                          fit: BoxFit.cover,
+                        ),
+                        Container(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              colors: [
+                                AppTheme.primaryColor.withOpacity(0.4),
+                                AppTheme.primaryColor.withOpacity(0.9),
+                              ],
+                            ),
+                          ),
+                        ),
+                        // Glassmorphism admin badge
+                        Positioned(
+                          bottom: 60,
+                          left: 20,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.18),
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(color: Colors.white.withOpacity(0.4)),
+                            ),
+                            child: const Row(
+                              children: [
+                                Icon(Icons.admin_panel_settings, color: Colors.white, size: 16),
+                                SizedBox(width: 6),
+                                Text("Super Admin", style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600)),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  bottom: TabBar(
                     controller: _tabController,
+                    labelColor: Colors.white,
+                    unselectedLabelColor: Colors.white60,
+                    indicatorColor: AppTheme.secondaryColor,
+                    indicatorWeight: 3,
+                    tabs: [
+                      Tab(
+                        text: "Pending (${stats['pendingDoctors'] ?? pendingDoctors.length})",
+                        icon: const Icon(Icons.pending_outlined, size: 16),
+                      ),
+                      const Tab(
+                        text: "All Doctors",
+                        icon: Icon(Icons.medical_services_outlined, size: 16),
+                      ),
+                      const Tab(
+                        text: "Pet Owners",
+                        icon: Icon(Icons.pets_outlined, size: 16),
+                      ),
+                    ],
+                  ),
+                ),
+                SliverToBoxAdapter(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      _buildPendingTab(),
-                      _buildAllDoctorsTab(),
-                      _buildOwnersTab(),
+                      _buildStatsRow(),
+                      _buildCredentialsCard(),
                     ],
                   ),
                 ),
               ],
+              body: TabBarView(
+                controller: _tabController,
+                children: [
+                  _buildPendingTab(),
+                  _buildAllDoctorsTab(),
+                  _buildOwnersTab(),
+                ],
+              ),
             ),
+    );
+  }
+
+  Widget _buildCredentialsCard() {
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [AppTheme.primaryColor.withOpacity(0.08), AppTheme.doctorPrimary.withOpacity(0.06)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppTheme.primaryColor.withOpacity(0.15)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: AppTheme.primaryColor.withOpacity(0.12),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Icon(Icons.key_rounded, color: AppTheme.primaryColor, size: 22),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text("Admin Credentials",
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppTheme.primaryColor)),
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    const Icon(Icons.email_outlined, size: 12, color: Colors.grey),
+                    const SizedBox(width: 4),
+                    Text("admin@pawcare.com",
+                        style: TextStyle(fontSize: 12, color: Colors.grey.shade700, fontWeight: FontWeight.w500)),
+                  ],
+                ),
+                const SizedBox(height: 2),
+                Row(
+                  children: [
+                    const Icon(Icons.lock_outline, size: 12, color: Colors.grey),
+                    const SizedBox(width: 4),
+                    Text("admin123",
+                        style: TextStyle(fontSize: 12, color: Colors.grey.shade700, fontWeight: FontWeight.w500)),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: BoxDecoration(
+              color: Colors.green.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: const Text("Active",
+                style: TextStyle(color: Colors.green, fontSize: 11, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
     );
   }
 
   Widget _buildStatsRow() {
     final items = [
       {
-        'label': 'Total Doctors',
+        'label': 'Doctors',
         'value': '${stats['totalDoctors'] ?? 0}',
         'icon': Icons.medical_services,
         'color': AppTheme.doctorPrimary,
@@ -139,7 +253,7 @@ class _AdminPanelState extends State<AdminPanel>
         'color': Colors.orange,
       },
       {
-        'label': 'Pet Owners',
+        'label': 'Owners',
         'value': '${stats['totalPetOwners'] ?? 0}',
         'icon': Icons.pets,
         'color': AppTheme.farmerPrimary,
@@ -153,30 +267,47 @@ class _AdminPanelState extends State<AdminPanel>
     ];
 
     return Container(
-      color: Colors.white,
-      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+      margin: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 12, offset: const Offset(0, 4))],
+      ),
       child: Row(
         children: items.map((item) {
           final color = item['color'] as Color;
           return Expanded(
             child: Container(
               margin: const EdgeInsets.symmetric(horizontal: 4),
-              padding: const EdgeInsets.all(10),
+              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 6),
               decoration: BoxDecoration(
-                color: color.withOpacity(0.08),
-                borderRadius: BorderRadius.circular(12),
+                gradient: LinearGradient(
+                  colors: [color.withOpacity(0.1), color.withOpacity(0.05)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: color.withOpacity(0.15)),
               ),
               child: Column(
                 children: [
-                  Icon(item['icon'] as IconData, color: color, size: 20),
-                  const SizedBox(height: 4),
+                  Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: color.withOpacity(0.15),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(item['icon'] as IconData, color: color, size: 16),
+                  ),
+                  const SizedBox(height: 6),
                   Text(item['value']!.toString(),
                       style: TextStyle(
                           color: color,
                           fontWeight: FontWeight.bold,
-                          fontSize: 18)),
+                          fontSize: 20)),
                   Text(item['label']!.toString(),
-                      style: TextStyle(color: Colors.grey.shade600, fontSize: 10),
+                      style: TextStyle(color: Colors.grey.shade600, fontSize: 9),
                       textAlign: TextAlign.center),
                 ],
               ),
