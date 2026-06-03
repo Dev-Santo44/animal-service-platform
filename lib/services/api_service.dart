@@ -65,11 +65,18 @@ class ApiService {
     return null;
   }
 
-  static Future<bool> uploadLicense(String email, String filePath) async {
+  static Future<bool> uploadLicense(String email, {String? filePath, Uint8List? bytes, String? fileName}) async {
     try {
       final request = http.MultipartRequest('POST', Uri.parse("$baseUrl/service-provider/upload-license"));
       request.fields['email'] = email;
-      request.files.add(await http.MultipartFile.fromPath('file', filePath));
+      
+      if (bytes != null && fileName != null) {
+        request.files.add(http.MultipartFile.fromBytes('file', bytes, filename: fileName));
+      } else if (filePath != null) {
+        request.files.add(await http.MultipartFile.fromPath('file', filePath));
+      } else {
+        return false;
+      }
       
       final token = await Session.getToken();
       if (token != null) request.headers['Authorization'] = 'Bearer $token';
@@ -648,6 +655,55 @@ class ApiService {
       return response.statusCode == 200;
     } catch (e) { debugPrint("Verify doctor error: $e"); }
     return false;
+  }
+
+  // 🛡️ ADMIN — Enhanced Endpoints
+  static Future<List<dynamic>> getAdminBookings() async {
+    try {
+      final response = await http.get(Uri.parse("$baseUrl/admin/all-bookings"), headers: await _getHeaders());
+      if (response.statusCode == 200) return jsonDecode(response.body);
+    } catch (e) { debugPrint("Admin bookings error: $e"); }
+    return [];
+  }
+
+  static Future<List<dynamic>> getAdminPayments() async {
+    try {
+      final response = await http.get(Uri.parse("$baseUrl/admin/all-payments"), headers: await _getHeaders());
+      if (response.statusCode == 200) return jsonDecode(response.body);
+    } catch (e) { debugPrint("Admin payments error: $e"); }
+    return [];
+  }
+
+  static Future<List<dynamic>> getAdminVaccinations() async {
+    try {
+      final response = await http.get(Uri.parse("$baseUrl/admin/all-vaccinations"), headers: await _getHeaders());
+      if (response.statusCode == 200) return jsonDecode(response.body);
+    } catch (e) { debugPrint("Admin vaccinations error: $e"); }
+    return [];
+  }
+
+  static Future<List<dynamic>> getAdminAnimals() async {
+    try {
+      final response = await http.get(Uri.parse("$baseUrl/admin/all-animals"), headers: await _getHeaders());
+      if (response.statusCode == 200) return jsonDecode(response.body);
+    } catch (e) { debugPrint("Admin animals error: $e"); }
+    return [];
+  }
+
+  static Future<List<dynamic>> getAdminReviews() async {
+    try {
+      final response = await http.get(Uri.parse("$baseUrl/admin/all-reviews"), headers: await _getHeaders());
+      if (response.statusCode == 200) return jsonDecode(response.body);
+    } catch (e) { debugPrint("Admin reviews error: $e"); }
+    return [];
+  }
+
+  static Future<Map<String, dynamic>?> getDoctorDocument(int doctorId) async {
+    try {
+      final response = await http.get(Uri.parse("$baseUrl/admin/doctor/$doctorId/document"), headers: await _getHeaders());
+      if (response.statusCode == 200) return jsonDecode(response.body);
+    } catch (e) { debugPrint("Doctor document error: $e"); }
+    return null;
   }
 }
 

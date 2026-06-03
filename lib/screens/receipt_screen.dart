@@ -81,7 +81,7 @@ class ReceiptScreen extends StatelessWidget {
                   ],
                 ),
                 pw.SizedBox(height: 40),
-                pw.Center(child: pw.Text(AppLocalizations.of(context)!.thankYouService, style: const pw.TextStyle(fontStyle: pw.FontStyle.italic))),
+                pw.Center(child: pw.Text(AppLocalizations.of(context)!.thankYouService, style: pw.TextStyle(fontStyle: pw.FontStyle.italic))),
               ],
             ),
           );

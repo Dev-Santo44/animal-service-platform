@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'dart:typed_data';
 import 'package:animal1/l10n/app_localizations.dart';
+import 'package:flutter/foundation.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:path/path.dart' as path;
 import '../services/api_service.dart';
@@ -25,20 +27,39 @@ class _RegisterScreenState extends State<RegisterScreen> {
   bool isLoading = false;
   String? selectedFilePath;
   String? selectedFileName;
+  Uint8List? selectedFileBytes;
 
   Future<void> _pickLicense() async {
-    final result = await FilePicker.platform.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: ['pdf', 'jpg', 'jpeg', 'png'],
-    );
+    try {
+      debugPrint("Initiating file picker...");
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['pdf', 'jpg', 'jpeg', 'png'],
+        withData: true,
+      );
 
-    if (result != null && result.files.single.path != null) {
-      setState(() {
-        selectedFilePath = result.files.single.path;
-        selectedFileName = path.basename(selectedFilePath!);
-      });
+      if (result != null) {
+        final file = result.files.single;
+        debugPrint("File picked: name=${file.name}, bytesLength=${file.bytes?.length}");
+        setState(() {
+          selectedFilePath = kIsWeb ? null : file.path;
+          selectedFileName = file.name;
+          selectedFileBytes = file.bytes;
+        });
+      } else {
+        debugPrint("File picker returned null (user cancelled or browser blocked it).");
+      }
+    } catch (e, stackTrace) {
+      debugPrint("Exception in _pickLicense: $e");
+      debugPrint(stackTrace.toString());
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Error picking file: $e")),
+        );
+      }
     }
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -212,15 +233,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 const SizedBox(height: 16),
                 OutlinedButton.icon(
                   onPressed: _pickLicense,
-                  icon: Icon(selectedFilePath == null ? Icons.upload_file : Icons.check_circle, 
-                        color: selectedFilePath == null ? null : Colors.green),
+                  icon: Icon(selectedFileName == null ? Icons.upload_file : Icons.check_circle, 
+                        color: selectedFileName == null ? null : Colors.green),
                   label: Text(selectedFileName ?? "Upload License Copy (PDF/JPG)"),
                   style: OutlinedButton.styleFrom(
                     minimumSize: const Size(double.infinity, 48),
-                    side: BorderSide(color: selectedFilePath == null ? Colors.grey.shade300 : Colors.green),
+                    side: BorderSide(color: selectedFileName == null ? Colors.grey.shade300 : Colors.green),
                   ),
                 ),
-                if (isDoctor && selectedFilePath == null)
+                if (isDoctor && selectedFileName == null)
                   const Padding(
                     padding: EdgeInsets.only(top: 8, left: 4),
                     child: Text("Please upload a license copy", style: TextStyle(color: Colors.red, fontSize: 12)),
@@ -254,7 +275,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Future<void> _handleRegister() async {
     final l = AppLocalizations.of(context)!;
     if (!_formKey.currentState!.validate()) return;
-    if (role == "Doctor" && selectedFilePath == null) {
+    if (role == "Doctor" && selectedFileName == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Please upload your license copy")),
       );
@@ -289,9 +310,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 licenseNumber: role == "Doctor" ? licenseController.text : null,
               );
               
-              if (result != null && role == "Doctor" && selectedFilePath != null) {
+              if (result != null && role == "Doctor" && selectedFileName != null) {
                 // STEP 4: Upload License
-                await ApiService.uploadLicense(emailController.text, selectedFilePath!);
+                await ApiService.uploadLicense(
+                  emailController.text,
+                  filePath: selectedFilePath,
+                  bytes: selectedFileBytes,
+                  fileName: selectedFileName,
+                );
               }
 
               if (mounted) {

@@ -75,6 +75,13 @@
 			<version>1.4.5</version>
 		</dependency>
 
+		<!-- GCP Cloud Storage for license uploads -->
+		<dependency>
+			<groupId>com.google.cloud</groupId>
+			<artifactId>google-cloud-storage</artifactId>
+			<version>2.40.0</version>
+		</dependency>
+
 		<!-- Sprint 1: Auth & Security -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
